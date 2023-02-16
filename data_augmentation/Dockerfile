@@ -44,7 +44,7 @@ RUN mkdir -p ${TARGET_ROOT} && \
 COPY --chown=user:user targets/${TARGET_ID} ${TARGET_ROOT}
 RUN ${TARGET_ROOT}/preinstall.sh
 USER user:user
-RUN source ~/.bash_profile && ${TARGET_ROOT}/build.sh
+RUN source ~/.bash_profile && ${DA_ROOT}/target_build.sh ${TARGET_ROOT}/build.sh
 RUN echo '. ${TARGET_ROOT}/config.sh' >> ~/.bash_profile
 
 RUN echo '. ~/.bash_profile' >> ~/.bashrc
