@@ -1,0 +1,6 @@
+exp_name: test
+target_id: cve-2016-10094
+DA:
+ name: AFLcem
+ output: /path/to/da_result
+time: [100, 150, 200] # seconds
