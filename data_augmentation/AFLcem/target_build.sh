@@ -1,6 +1,8 @@
 #/bin/bash
 set -eu
 
+. ${TARGET_ROOT}/config.sh
+
 if [ $# -lt 1 ]; then
   echo "Usage: $0 /path/to/build.sh" 1>&2
   exit 1
@@ -13,4 +15,7 @@ CFLAGS="-fsanitize=address -static -ggdb -no-pie" \
 CXXFLAGS="-fsanitize=address -static -ggdb -no-pie" \
 CC=${DA_ROOT}/afl-fuzz/afl-gcc \
 CXX=${DA_ROOT}/afl-fuzz/afl-g++ \
-$1
+$1 aflcem_target
+
+ORIG=${TARGET_ROOT}/aflcem_target/${RELPATH}
+cp ${ORIG} ${WORKDIR}/`basename ${ORIG}`_fuzz
