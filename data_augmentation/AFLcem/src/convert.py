@@ -8,10 +8,13 @@ import hashlib
 import os
 import json
 
-OUTPUT = "/shared/"
+OUTPUT = os.environ["SHARED"]
+
+seed_path = "/workdir/seeds/" + os.environ["DA_SEED"]
 
 result = dict()
 result["inputs"] = list()
+result["max_timeout"] = os.environ["DA_MAX_TIMEOUT"]
 
 offset = datetime.datetime.fromisoformat(sys.argv[1])
 
@@ -24,7 +27,11 @@ def gen_name(fname, prefix=""):
         sha1.update(data)
     return prefix + sha1.hexdigest()
 
+# seed
+shutil.copy(seed_path, OUTPUT + "/inputs/" + "seed")
+result["seed"] = "seed"
 
+# crashes
 for f in glob.glob("/workdir/queue/id*"):
     if "orig" in f:
         # seed
@@ -36,6 +43,7 @@ for f in glob.glob("/workdir/queue/id*"):
     shutil.copy(f, OUTPUT + "/inputs/" + n)
     result["inputs"].append({"tag": "crash", "path":n, "time": t, "info": []})
 
+# non crashes
 for f in glob.glob("/workdir/non_crashes/id*"):
     p = pathlib.Path(f)
     t = (datetime.datetime.fromtimestamp(p.stat().st_mtime).astimezone() - offset).total_seconds()
