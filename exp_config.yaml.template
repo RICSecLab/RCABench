@@ -1,6 +1,9 @@
 exp_name: test
-target_id: cve-2016-10094
+target_id: libtiff_cve-2016-10094 #ex
 DA:
- name: AFLcem
+ name: DA_tech_name # [AFLcem, ConcFuzz]
  output: /path/to/da_result
+FE:
+ name: FE_tech_name # [AuroraFE, VulnLocFE]
+ output: /tmp/result_dir
 time: [100, 150, 200] # seconds
