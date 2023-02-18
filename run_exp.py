@@ -13,8 +13,16 @@ def parse_args(args):
     config["target_id"] = args.target_id
     config["DA"] = {}
     config["DA"]["name"] = args.da
-    config["FE"] = {}
-    config["FE"]["name"] = args.fe
+    if args.fe and args.fe_output:
+        config["FE"] = {}
+        config["FE"]["name"] = args.fe
+    elif (args.fe and not args.fe_output) or \
+            (not args.fe and args.fe_output):
+        logging.error("Inconsistent arguments with FE")
+        sys.exit(1)
+    if not (args.fe or args.da):
+        logging.error("Nothing to do?")
+        sys.exit(1)
     config["time"] = list(map(int,args.time))
     config["seed"] = args.seed
 
@@ -39,10 +47,10 @@ def do_exp(orig_config, da_output, fe_output, num):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--da", required=True)
-    parser.add_argument("--fe", required=True)
+    parser.add_argument("--da", required=False)
+    parser.add_argument("--fe", required=False)
     parser.add_argument("--da_output", required=True)
-    parser.add_argument("--fe_output", required=True)
+    parser.add_argument("--fe_output", required=False)
     parser.add_argument("--exp_name", required=True)
     parser.add_argument("--target_id", required=True)
     parser.add_argument("--time",  nargs='+', required=True)
