@@ -22,3 +22,5 @@ for inp in data["inputs"]:
 
     elif inp["tag"] == "non_crash" and inp["time"] <= timeout:
         shutil.copy(da_result+"/inputs/"+inp["path"], non_crash_dir)
+
+shutil.copy(da_result+"/inputs/"+data["seed"], crash_dir)
