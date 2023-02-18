@@ -44,7 +44,7 @@ def parse_args():
     # read & processing config file
     detailed_config = {}
     detailed_config['results_path'] = os.environ['DA_RESULT']
-    detailed_config['da_timeout'] = os.environ['DA_TIMEOUT']
+    detailed_config['da_timeout'] = int(os.environ['DA_TIMEOUT'])
     for item in config.items(args.tag):
         if item[0] == 'folder':
             if not os.path.exists(item[1]):
@@ -193,9 +193,9 @@ def read_da_results(res_path, da_timeout):
     cres = []
     nres = []
     for inp in data["inputs"]:
-        if inp["tag"] == "crash" and inp["time"] <= da_timeout:
+        if inp["tag"] == "crash" and int(inp["time"]) <= da_timeout:
             cres.append(utils.read_bin(res_path+"/inputs/"+inp["path"]))
-        elif inp["tag"] == "non_crash" and inp["time"] <= da_timeout:
+        elif inp["tag"] == "non_crash" and int(inp["time"]) <= da_timeout:
             nres.append(utils.read_bin(res_path+"/inputs/"+inp["path"]))
 
     seed = utils.read_bin(res_path+"/inputs/"+data["seed"])
