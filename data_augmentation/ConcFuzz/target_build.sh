@@ -7,11 +7,12 @@ if [ $# -lt 1 ]; then
 fi
 
 # TODO: Run a custom build script for a specific target, if it exists.
-TARGET_DEF_LDFLAGS="-fsanitize=address" \
-TARGET_DEF_CFLAGS="-fsanitize=address -ggdb -no-pie" \
-TARGET_DEF_CXXFLAGS="-fsanitize=address  -ggdb -no-pie" \
+TARGET_DEF_LDFLAGS="-fsanitize=address -no-pie" \
+TARGET_DEF_CFLAGS="-fsanitize=address -ggdb -no-pie -static" \
+TARGET_DEF_CXXFLAGS="-fsanitize=address  -ggdb -no-pie -static" \
 $1 oracle_source
 
-TARGET_DEF_CFLAGS="-ggdb -no-pie" \
-TARGET_DEF_CXXFLAGS="-ggdb -no-pie" \
+TARGET_DEF_LDFLAGS="-no-pie" \
+TARGET_DEF_CFLAGS="-ggdb -no-pie -static" \
+TARGET_DEF_CXXFLAGS="-ggdb -no-pie -static" \
 $1 origin_source
