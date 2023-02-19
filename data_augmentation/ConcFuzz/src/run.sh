@@ -13,3 +13,5 @@ TIMEOUT=${DA_MAX_TIMEOUT} python ${DA_ROOT}/scripts/fuzz.py --config_file "$WORK
 
 RES_DIR=`find ${WORKDIR}/output/ -maxdepth 1 -name 'output_*' -not -path '*/\.*' -type d | sed 's/^\.\///g'`
 python3 ${DA_ROOT}/src/convert.py $T $RES_DIR/inputs
+mkdir ${SHARED}/data
+cp -r ${WORKDIR}/. ${SHARED}/data
