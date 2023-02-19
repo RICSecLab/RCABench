@@ -34,14 +34,18 @@ def run(config):
 def do_exp(orig_config, da_output, fe_output, num):
     if num is None:
         config = orig_config
-        config["DA"]["output"] = da_output
-        config["FE"]["output"] = fe_output
+        if "DA" in config.keys():
+            config["DA"]["output"] = da_output
+        if "FE" in config.keys():
+            config["FE"]["output"] = fe_output
         run(config)
     else:
         for i in range(num):
             config = orig_config
-            config["DA"]["output"] = da_output+"_{}".format(i)
-            config["FE"]["output"] = fe_output+"_{}".format(i)
+            if "DA" in config.keys():
+                config["DA"]["output"] = da_output+"_{}".format(i)
+            if "FE" in config.keys():
+                config["FE"]["output"] = fe_output+"_{}".format(i)
             run(config)
 
 
