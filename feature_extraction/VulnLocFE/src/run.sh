@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 set -eu
 
 echo "[start] Abstraction Layer"
