@@ -23,8 +23,8 @@ fi
 if $TARGET_BUILD_FLAG; then
   AFL_USE_ASAN=1 \
   TARGET_DEF_LDFLAGS="-fsanitize=address" \
-  TARGET_DEF_CFLAGS="-fsanitize=address -static -ggdb -no-pie" \
-  TARGET_DEF_CXXFLAGS="-fsanitize=address -static -ggdb -no-pie" \
+  TARGET_DEF_CFLAGS="-fsanitize=address -ggdb -no-pie" \
+  TARGET_DEF_CXXFLAGS="-fsanitize=address -ggdb -no-pie" \
   TARGET_DEF_CC=${DA_ROOT}/afl-fuzz/afl-gcc \
   TARGET_DEF_CXX=${DA_ROOT}/afl-fuzz/afl-g++ \
   $1 aflcem_target

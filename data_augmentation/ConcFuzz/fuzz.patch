@@ -1,0 +1,107 @@
+--- data_augmentation/scripts/fuzz.py
++++ data_augmentation/scripts/fuzz.py
+@@ -15,15 +15,16 @@
+ 
+ DefaultItems = ['trace_cmd', 'crash_cmd', 'poc', 'poc_fmt', 'folder', 'mutate_range', 'crash_tag']
+ OutFolder = ''
++AuroraFolder = ''
+ TmpFolder = ''
+ TraceFolder = ''
+ 
+ SeedPool = [] # Each element is in the fmt of [<process_tag>, <seed_content>]. <process_tag>: True (selected) / False (not selected)
+ SeedTraceHashList = []
++NCSeedTraceHashList = []
+ ReportCollection = [] # Each element if in the fmt of [<trace_hash>, <tag>]. <tag>: m - malicious / b - benign
+ TraceHashCollection = []
+-GlobalTimeout = 4 * 60 * 60 # 2 hours
+-LocalTimeout = 4 * 60 * 60 # 2 hours
++Timeout = 4 * 60 * 60 # 4 hours
+ DefaultRandSeed = 3
+ DefaultMutateNum = 200
+ DefaultMaxCombination = 2
+@@ -95,16 +96,11 @@
+ 	detailed_config['poc_fmt'] = processed_fmt
+ 	detailed_config.pop('mutate_range')
+ 	# process the optional args
+-	if 'global_timeout' not in detailed_config: # read the global timeout (overall)
+-		global GlobalTimeout
+-		detailed_config['global_timeout'] = GlobalTimeout
++	if os.getenv('TIMEOUT') == None: # read the timeout (overall, each seed), from ENV variable
++		global Timeout
++		detailed_config['timeout'] = Timeout
+ 	else:
+-		detailed_config['global_timeout'] = int(detailed_config['global_timeout'][0])
+-	if 'local_timeout' not in detailed_config: # read the local timeout for each seed
+-		global LocalTimeout
+-		detailed_config['local_timeout'] = LocalTimeout
+-	else:
+-		detailed_config['local_timeout'] = int(detailed_config['local_timeout'][0])
++		detailed_config['timeout'] = int(os.getenv('TIMEOUT'))
+ 	if 'rand_seed' not in detailed_config: # read the randomization seed
+ 		global DefaultRandSeed
+ 		detailed_config['rand_seed'] = DefaultRandSeed
+@@ -152,12 +148,19 @@
+ 	return args.tag, detailed_config, args.verbose
+ 
+ def init_log(tag, verbose, folder):
+-	global OutFolder, TmpFolder, TraceFolder
++        global AuroraFolder, OutFolder, TmpFolder, TraceFolder
++
+ 	OutFolder = os.path.join(folder, 'output_%d' % int(time()))
+ 	if os.path.exists(OutFolder):
+ 		raise Exception("ERROR: Output folder already exists! -> %s" % OutFolder)
+ 	else:
+ 		os.mkdir(OutFolder)
++
++        AuroraFolder = os.path.join(OutFolder, 'inputs')
++        os.mkdir(AuroraFolder)
++        os.mkdir(os.path.join(AuroraFolder, 'crashes'))
++        os.mkdir(os.path.join(AuroraFolder, 'non_crashes'))
++
+ 	TmpFolder = os.path.join(OutFolder, 'tmp')
+ 	if not os.path.exists(TmpFolder):
+ 		os.mkdir(TmpFolder)
+@@ -383,7 +386,7 @@
+ 	return inputs
+ 
+ def concentrate_fuzz(config_info):
+-	global TraceHashCollection, ReportCollection, SeedPool, SeedTraceHashList, TraceFolder, TmpFolder
++	global TraceHashCollection, ReportCollection, SeedPool, SeedTraceHashList, NCSeedTraceHashList, TraceFolder, TmpFolder
+ 	# init the randomization function
+ 	np.random.seed(config_info['rand_seed'])
+ 	logging.info("Initialized the random seed -> %d" % config_info['rand_seed'])
+@@ -480,7 +483,16 @@
+ 				# check whether to add it into the seed pool
+ 				if item[3] == 'm' and item[2] not in SeedTraceHashList:
+ 					SeedPool.append([False, inputs[item[0]]])
++                                        cseed_filepath = os.path.join(AuroraFolder, 'crashes/' +str(item[2]))
++                                        content = np.asarray(inputs[item[0]]).astype(np.int)
++                                        utils.write_bin(cseed_filepath, content)
+ 					SeedTraceHashList.append(item[2])
++				if item[3] != 'm' and item[2] not in NCSeedTraceHashList:
++                                        ncseed_filepath = os.path.join(AuroraFolder, 'non_crashes/' +str(item[2]))
++                                        content = np.asarray(inputs[item[0]]).astype(np.int)
++                                        utils.write_bin(ncseed_filepath, content)
++					NCSeedTraceHashList.append(item[2])
++
+ 				# Update reports
+ 				if [item[2], item[3]] not in ReportCollection:
+ 					ReportCollection.append([item[2], item[3]])
+@@ -490,7 +502,7 @@
+ 			# check whether it timeouts or not
+ 			ctime = time()
+ 			duration = ctime-stime
+-			if(duration >= config_info['local_timeout']): # exist if it timeouts
++			if(duration >= config_info['timeout']): # exist if it timeouts
+ 				logging.debug("[R-%d-%d] Timeout locally! -> Duration: %f (%f - %f) in seconds" % (round_no, subround_no, duration, ctime, stime))
+ 				break
+ 			# check whether all the locations get explored or not.
+@@ -534,7 +546,7 @@
+ 		# check whether it timeouts
+ 		ctime = time()
+ 		duration = ctime - stime
+-		if (duration >= config_info['global_timeout']):
++		if (duration >= config_info['timeout']):
+ 			logging.debug("[R-%d] Timeout! -> Duration: %f (%f - %f) in seconds" % (round_no, duration, ctime, stime))
+ 			break
+ 

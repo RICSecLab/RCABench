@@ -12,3 +12,5 @@ timeout --preserve-status --foreground ${AFLCEM_TIMEOUT} ${DA_ROOT}/afl-fuzz/afl
   -i ${WORKDIR}/seeds -o ${WORKDIR} -- ${WORKDIR}/`basename ${ORIG}`_fuzz ${ARGS}
 
 python3 ${DA_ROOT}/src/convert.py $T
+mkdir ${SHARED}/data
+cp -r ${WORKDIR}/. ${SHARED}/data
