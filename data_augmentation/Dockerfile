@@ -29,7 +29,7 @@ ENV DA_ROOT /data_augmentation
 USER root:root
 RUN mkdir -p ${DA_ROOT} && \
     chown user:user ${DA_ROOT}
-COPY --chown=user:user data_augmentation/${DA}/ ${DA_ROOT}
+COPY --chown=user:user data_augmentation/methods/${DA}/ ${DA_ROOT}
 RUN ${DA_ROOT}/preinstall.sh
 USER user:user
 RUN ${DA_ROOT}/build.sh

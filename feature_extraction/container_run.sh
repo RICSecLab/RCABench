@@ -10,4 +10,4 @@ docker run --rm -it \
                 --env DA_TIMEOUT=${DA_TIMEOUT} \
                 -v ${DA_RESULT}:/da_result:ro \
                 -v ${FE_OUTPUT}:/shared \
-                ${IMAGE_NAME} bash -i run.sh
+                ${IMAGE_NAME} bash -i fe_run.sh
