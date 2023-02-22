@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import logging
+import time
 
 def parse_config(fname):
     with open(fname) as file:
@@ -37,7 +38,11 @@ def exec_DA(exp_name, DA, target, max_timeout, res_path, seed):
     env["DA_MAX_TIMEOUT"] = str(max_timeout)
     env["DA_SEED"] = seed
     env["DA_OUTPUT"] = res_path
+    da_start_time = time.time()
     res = subprocess.run("data_augmentation/container_run.sh", env=env)
+    da_end_time = time.time()
+    with open(res_path+"/da_time_external.txt", "w") as f:
+        f.write(str(int(da_end_time - da_start_time))+"\n")
     if res.returncode != 0:
         logging.error("DA container_run.sh failed")
         sys.exit(1)

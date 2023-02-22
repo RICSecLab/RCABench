@@ -31,11 +31,13 @@ ENV FE_ROOT /feature_extraction
 USER root:root
 RUN mkdir -p ${FE_ROOT} && \
     chown user:user ${FE_ROOT}
-COPY --chown=user:user feature_extraction/${FE} ${FE_ROOT}
+COPY --chown=user:user feature_extraction/methods/${FE} ${FE_ROOT}
+COPY --chown=user:user feature_extraction/scripts_inside_container ${FE_ROOT}/scripts_inside_container
 RUN ${FE_ROOT}/preinstall.sh
 USER user:user
 RUN ${FE_ROOT}/build.sh
 RUN echo '. ${FE_ROOT}/config.sh' >> ~/.bash_profile
+RUN echo '. ${FE_ROOT}/scripts_inside_container/config.sh' >> ~/.bash_profile
 
 # Setup a target
 ARG TARGET_ID
