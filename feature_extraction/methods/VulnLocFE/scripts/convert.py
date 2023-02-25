@@ -12,7 +12,7 @@ import hashlib
 import shutil
 import tracer
 import itertools
-from multiprocessing import Pool
+from multiprocessing import Pool, TimeoutError
 import glob
 import json
 
@@ -223,22 +223,29 @@ def gen_concfuzz_output(config_info):
     SeedTraceHashList.append(trace_hash)
     logging.info('Finish processing the poc!')
 
+    res = []
     c_num = len(crash_inputs)
     for i,crash_input in enumerate(crash_inputs):
-            pool.apply_async(
+            res.append(pool.apply_async(
                     gen_report,
                     args = (i, crash_input, config_info['poc_fmt'], config_info['trace_cmd'], config_info['trace_replace_idx'], "m" ),
                     callback = result_collection.append
-            )
+            ))
 
     for i,non_crash_input in enumerate(non_crash_inputs):
-            pool.apply_async(
+            res.append(pool.apply_async(
                     gen_report,
                     args = (i+c_num, non_crash_input, config_info['poc_fmt'], config_info['trace_cmd'], config_info['trace_replace_idx'], "b"),
                     callback = result_collection.append
-            )
-    pool.close()
-    pool.join()
+            ))
+
+    for r in res:
+        try:
+            r.get(timeout=500) # TODO
+        except TimeoutError:
+            logging.info('timeout')
+        except Exception as e:
+            logging.error('Crash error %s' % str(e))
 
     # Delete all the tmp files
     shutil.rmtree(TmpFolder)
