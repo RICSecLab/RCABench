@@ -15,6 +15,9 @@ import itertools
 from multiprocessing import Pool, TimeoutError
 import glob
 import json
+import subprocess
+import env
+from tqdm import tqdm
 
 DefaultItems = ['trace_cmd', 'crash_cmd', 'poc', 'poc_fmt', 'folder', 'mutate_range']
 OutFolder = ''
@@ -179,12 +182,33 @@ def just_trace(input_no, raw_args, poc_fmt, trace_cmd, trace_replace_idx):
 	trace_hash = calc_trace_hash(trace)
 	return trace, trace_hash
 
+def ifTracer(cmd_list):
+        try:
+            #TODO: hung
+            tracer_cmd_list = ["timeout", "120", env.dynamorio_path, '-c', env.iftracer_path, '--'] + cmd_list
+            # execute command
+            p1 = subprocess.Popen(tracer_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p1.communicate()
+            # parse the output
+            if_list = []
+            for aline in out.split("\n"):
+                    if '0x00000000004' in aline:
+                            t = aline.split(' => ')
+                            if_list.append(t[0])
+            return if_list
+        except Exception as e:
+            p1.kill()
+            raise Exception("iftracer")
+
 def gen_report(input_no, raw_args, poc_fmt, trace_cmd, trace_replace_idx, crash_result):
-	processed_args = prepare_args(input_no, raw_args, poc_fmt)
-	trace_cmd = prepare_cmd(trace_cmd, trace_replace_idx, processed_args)
-	trace = tracer.ifTracer(trace_cmd)
-	trace_hash = calc_trace_hash(trace)
-	return [input_no, trace, trace_hash, crash_result]
+        try:
+            processed_args = prepare_args(input_no, raw_args, poc_fmt)
+            trace_cmd = prepare_cmd(trace_cmd, trace_replace_idx, processed_args)
+            trace = ifTracer(trace_cmd)
+            trace_hash = calc_trace_hash(trace)
+            return [input_no, trace, trace_hash, crash_result]
+        except:
+            return None
 
 def read_da_results(res_path, da_timeout):
     with open(res_path+"/result.json","r") as f:
@@ -239,11 +263,9 @@ def gen_concfuzz_output(config_info):
                     callback = result_collection.append
             ))
 
-    for r in res:
+    for r in tqdm(res):
         try:
-            r.get(timeout=500) # TODO
-        except TimeoutError:
-            logging.info('timeout')
+            r.get() # TODO
         except Exception as e:
             logging.error('Crash error %s' % str(e))
 
@@ -253,6 +275,8 @@ def gen_concfuzz_output(config_info):
 
     inputs = crash_inputs + non_crash_inputs
     for item in result_collection:
+        if item is None:
+            continue
         # save the trace
         if item[2] not in TraceHashCollection:
                 TraceHashCollection.append(item[2])
