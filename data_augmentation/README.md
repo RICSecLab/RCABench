@@ -2,12 +2,12 @@
 
 Data augmentation is the process of generating new crashing and non-crashing inputs from a given crashing inputs and is the first step in RCA. The generated inputs are used as a dataset for feature extraction.
 
-Currently, RCABench supports two types of data extension methods as listed in the table below. If you want to add a new method, follow the instructions in ["How to add a new data augmentation method"](#how-to-add-a-new-data-augmentation-method).
+Currently, RCABench supports two types of data augmentation methods as listed in the table below. If you want to add a new method, follow the instructions in ["How to add a new data augmentation method"](#how-to-add-a-new-data-augmentation-method).
 
 | Method | Description |
 | ---- | ---- |
-| AFLcem | AFLCem is a data extension method in [Aurora [USENIX Security'20]](https://www.usenix.org/conference/usenixsecurity20/presentation/blazytko). Aurora uses the crash exploration mode provided by AFL, a typical coverage-guided fuzzer. For more information on crash exploration mode, read the blog post [afl-fuzz: crash exploration mode.](https://lcamtuf.blogspot.com/2014/11/afl-fuzz-crash-exploration-mode.html) |
-| ConcFuzz | ConcFuzz is a data extension method in [VulnLoc [ASIA CCS'21]](https://dl.acm.org/doi/10.1145/3433210.3437528). VulnLoc proposed ConcFuzz, a directed fuzzer that efficiently generates inputs that exercise execution paths in the neighbourhood of the path taken by a given crash input. |
+| AFLcem | AFLCem is a data augmentation method in [Aurora [USENIX Security'20]](https://www.usenix.org/conference/usenixsecurity20/presentation/blazytko). Aurora uses the crash exploration mode provided by AFL, a typical coverage-guided fuzzer. For more information on crash exploration mode, read the blog post [afl-fuzz: crash exploration mode.](https://lcamtuf.blogspot.com/2014/11/afl-fuzz-crash-exploration-mode.html) |
+| ConcFuzz | ConcFuzz is a data augmentation method in [VulnLoc [ASIA CCS'21]](https://dl.acm.org/doi/10.1145/3433210.3437528). VulnLoc proposed ConcFuzz, a directed fuzzer that efficiently generates inputs that exercise execution paths in the neighbourhood of the path taken by a given crash input. |
 
 ## How to add a new data augmentation method
 
@@ -27,7 +27,7 @@ Follow the instructions below to create the necessary files.
 
 #### `preinstall.sh`
 
-This file specifies the commands to install the packages needed to build and run your data extension method. It needs to be written as a bash script. The script is also run as administrator privilege in the [Dockerfile](./Dockerfile).
+This file specifies the commands to install the packages needed to build and run your data augmentation method. It needs to be written as a bash script. The script is also run as administrator privilege in the [Dockerfile](./Dockerfile).
 
 Basically, you can use the following example to create this file. As shown in the example, you can use the `apt install` or `pip install` commands to install the packages you need. To use this example in practice, rewrite the `<PACKAGES>`.
 
@@ -46,7 +46,7 @@ For more concrete examples, see [preinstall.sh](./methods/AFLcem/preinstall.sh) 
 
 #### `build.sh`
 
-This file specifies the command to download and build your data extension method. It needs to be written as a bash script. Also, because this script runs as non-root in the [Dockerfile](./Dockerfile), any work that requires administrative privileges must be done in the `preinstall.sh` explained in the previous step.
+This file specifies the command to download and build your data augmentation method. It needs to be written as a bash script. Also, because this script runs as non-root in the [Dockerfile](./Dockerfile), any work that requires administrative privileges must be done in the `preinstall.sh` explained in the previous step.
 
 Basically, you can use the following example to create this file, which consists of three steps:
 
@@ -116,7 +116,7 @@ For more concrete examples, see [target_build.sh](./methods/AFLcem/target_build.
 
 #### `src/run.sh`
 
-This file specifies the command to run your data extension method. It needs to be written as a bash script. Basically, you can use the following example to create this file. You must rewrite `<DA_COMMAND>` and `<DA_ARGS>` according to your data augmentation method. The following parameters are available at run time. See the variable definitions at the top of the script below to set `<DA_ARGS>`.
+This file specifies the command to run your data augmentation method. It needs to be written as a bash script. Basically, you can use the following example to create this file. You must rewrite `<DA_COMMAND>` and `<DA_ARGS>` according to your data augmentation method. The following parameters are available at run time. See the variable definitions at the top of the script below to set `<DA_ARGS>`.
 
 
 In addition, the output of the data augmentation must conform to the interface defined by RCABench. If your data augmentation is not compliant, you can add a script that converts the data for that interface, to the `src` directory and run it in `run.sh`. We have added such a conversion process for AFLcem and ConcFuzz.
