@@ -111,7 +111,7 @@ First, you should create a directory named `seeds` under the directory you creat
 
 Optionally, you can place several different crashing inputs other than the `default` file in the `seeds` directory. This is used to measure the difference in performance of the RCA tool due to different initial seeds.
 
-###　4. Define root causes
+### 4. Define root causes
 
 RCABench evaluates the results inferred by each feature extraction method based on the ground truth of the root cause, which is predefined by humans. Currently, RCABench supports the definition of the root cause at the line level of the source code. It is also possible to register multiple ground truths.
 
