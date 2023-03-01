@@ -17,11 +17,9 @@ RCABench was developed as part of a paper accepted for NDSS BAR 2023. If you fin
 }
 ```
 
-## Installation
-
 ## Contributing
 
-Please open GitHub Issues and Pull Requests. All commits must include a `Signed-off-by` line using `git commit --signoff` to enforce the [Developer Certificate of Origin (DCO)](https://developercertificate.org).
+Please open GitHub Issues and Pull Requests.
 
 ## License
 
