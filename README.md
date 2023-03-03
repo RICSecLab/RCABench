@@ -39,7 +39,7 @@ The following software must be installed to run RCABench.
 - Docker
 - Python3
 
-RCABench basically runs in Docker containers. You will also need to run a simple Python script to set up the Docker environment.Their installation should be done according to the official documentation.
+RCABench basically runs in docker containers. You will also need to run a simple python script to build docker images and launch docker containers. Please follow the official documentation for these installations.
 
 #### Environment
 
@@ -105,7 +105,7 @@ RCABench automatically compares the results of feature extraction with a human-d
 
 ### Running an experiment with a config file
 
-This section describes an easy way to run a experiment using a config file. The config file for an experiment on target A using AFLcem and VulnLocFE is as follows:
+This section describes an easy way to run a experiment using a config file. The config file for an experiment on [libtiff_cve-2016-10094](./targets/libtiff_cve-2016-10094/) target using [AFLcem](./data_augmentation/methods/AFLcem/) and [VulnLocFE](./feature_extraction/methods/VulnLocFE/) is as follows:
 
 ```yaml
 exp_name: test
