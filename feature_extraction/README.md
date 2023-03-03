@@ -13,4 +13,4 @@ Currently, RCABench supports two types of feature extraction methods as listed i
 
 ## How to add a new feature extraction method
 
-To add a new feature extraction method to RCABench, follow the three steps below.
+Basically, new methods can be added in the same way as data extensions, see [How to add a new data augmentation method](../data_augmentation/README.md#how-to-add-a-new-data-augmentation-method). Also, check [AuroraFE](./methods/AuroraFE/) and [VulnLocFE](./methods/VulnLocFE/) implementation for more detailed information.
