@@ -11,7 +11,7 @@ RCABench was developed as part of a paper accepted for NDSS BAR 2023. If you fin
 ```
 @inproceedings{nishimura2023rcabench,
     title={{RCABench:} Open Benchmarking Platform for Root Cause Analysis},
-    author={Keisuke Nishimura, Yuichi Sugiyama, Yuki Koike, Masaya Motoda, Tomoya Kitagawa, Toshiki Takatera, Yuma Kurogome},
+    author={Keisuke Nishimura and Yuichi Sugiyama and Yuki Koike and Masaya Motoda and Tomoya Kitagawa and Toshiki Takatera and Yuma Kurogome},
     booktitle={NDSS Binary Analysis Research Workshop},
     year={2023}
 }
