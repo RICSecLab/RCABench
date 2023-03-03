@@ -39,7 +39,7 @@ The following software must be installed to run RCABench.
 - Docker
 - Python3
 
-RCABench basically runs in docker containers. You will also need to run a simple python script to build docker images and launch docker containers. Please follow the official documentation for these installations.
+RCABench basically works with docker containers, but you need to build docker images and launch docker containers by running simple python scripts. Please follow the official documentation for these installations.
 
 #### Environment
 
