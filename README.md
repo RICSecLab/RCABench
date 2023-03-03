@@ -98,7 +98,7 @@ When this command is run, a docker image is created, a docker container is start
 Finally, check the RCA results with the following command:
 
 ```bash
-cat {RCABENCH_RESULTS}/fe_output/10/fe_result.txt | grep loc_uniq | cut -d ":" -f2
+cat ${RCABENCH_RESULTS}/fe_output/10/fe_result.txt | grep loc_uniq | cut -d ":" -f2
 ```
 
 RCABench automatically compares the results of feature extraction with a human-defined ground truth and outputs the number of candidates needed to estimate the correct root cause. A lower number indicates better results.
