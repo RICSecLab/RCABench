@@ -2,7 +2,9 @@
 
 Data augmentation is the process of generating new crashing and non-crashing inputs from a given crashing inputs and is the first step in RCA. The generated inputs are used as a dataset for feature extraction.
 
-Currently, RCABench supports two types of data augmentation methods as listed in the table below. If you want to add a new method, follow the instructions in ["How to add a new data augmentation method"](#how-to-add-a-new-data-augmentation-method).
+## List of currently available methods
+
+Currently, RCABench supports two types of data augmentation methods as listed in the table below. If you want to add a new method, follow the instructions in ["How to add a new data augmentatio method"](#how-to-add-a-new-data-augmentatio-method).
 
 | Method | Description |
 | ---- | ---- |

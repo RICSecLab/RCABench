@@ -1,6 +1,8 @@
 # Targets
 
-Currently, RCABench supports the seven targets listed in the table below.Each target is a program that contains a bug or vulnerability. If you want to add a new target,  If you want to add a new method, follow the instructions in [How to add a new target](#how-to-add-a-new-target).
+## List of currently available methods
+
+Currently, RCABench supports the seven targets listed in the table below.Each target is a program that contains a bug or vulnerability. If you want to add a new method, follow the instructions in [How to add a new target](#how-to-add-a-new-target).
 
 | | Program | ID | Root Cause | Crash Cause |
 | ---- | ---- | ---- | ---- | ---- |
