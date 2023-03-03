@@ -59,7 +59,7 @@ The experiment consists of four main steps. Follow the instructions below and ex
 
 #### 1. Create a directory
 
-First, create a directory on the host machine to store the experiment results. RCABench runs RCA on the Docker container, but the artifacts of RCA (data augmentation results and final RCA results) are shared with the host machine.
+First, create a directory on the host machine to store the experiment results. RCABench runs RCA on the Docker container, but the artifacts of RCA (data augmentation results, final RCA results, etc.) are shared with the host machine.
 
 For example, create a directory with the following command:
 
