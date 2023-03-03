@@ -12,7 +12,7 @@ Currently, RCABench supports the seven targets listed in the table below.Each ta
 | [libxml2_cve-2017-5969](./libxml2_cve-2017-5969/) | Libxml2 | CVE-2017-5969 | incomplete check | null pointer dereference |
 | [mruby_hackerone-reports-185041](./mruby_hackerone-reports-185041/) | mruby | HackerOne 185041 | missing check | type confusion |
 | [readelf_cve-2019-9077](./readelf_cve-2019-9077/) | readelf | CVE-2019-9077 | missing check | heap buffer overflow |
-| [lua_cve-2019-6706/](./lua_cve-2019-6706/) | Lua | CVE-2019-6706 | missing check | use-after-free |
+| [lua_cve-2019-6706](./lua_cve-2019-6706/) | Lua | CVE-2019-6706 | missing check | use-after-free |
 
 ## How to add a new target
 
