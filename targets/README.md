@@ -43,7 +43,7 @@ set -eux
 apt install -y <PACKAGES>
 ```
 
-For more concrete examples, see [preinstall.sh](./libtiff_cve-2016-10094/preinstall.sh) used in [libtiff_cve-2016-10094](./libtiff_cve-2016-10094).
+For more concrete examples, see [preinstall.sh](./libtiff_cve-2016-10094/preinstall.sh) used in libtiff_cve-2016-10094.
 
 #### `build.sh`
 
@@ -87,7 +87,7 @@ done
 eval <BUILD_COMMAND> ${ARGS}
 ```
 
-For more concrete examples, see [build.sh](./libtiff_cve-2016-10094/build.sh) used in [libtiff_cve-2016-10094](./libtiff_cve-2016-10094).
+For more concrete examples, see [build.sh](./libtiff_cve-2016-10094/build.sh) used in libtiff_cve-2016-10094.
 
 #### `config.sh`
 
@@ -103,13 +103,13 @@ export RELPATH="<TARGET_BIN_PATH>"
 export ARGS="<TARGET_BIT_ARGS>"
 ```
 
-For more concrete examples, see [config.sh](./libtiff_cve-2016-10094/config.sh) used in [libtiff_cve-2016-10094](./libtiff_cve-2016-10094) and [config.sh](./libjpeg_cve-2017-15232/config.sh) used in [libjpeg_cve-2017-15232](./libjpeg_cve-2017-15232/). In the first example, only the input file is set as an execution argument to the target; in the second example, the input file and multiple arguments are set.
+For more concrete examples, see [config.sh](./libtiff_cve-2016-10094/config.sh) used in libtiff_cve-2016-10094 and [config.sh](./libjpeg_cve-2017-15232/config.sh) used in libjpeg_cve-2017-15232. In the first example, only the input file is set as an execution argument to the target; in the second example, the input file and multiple arguments are set.
 
 ### 3. Prepare an crashing input
 
 RCA uses a crashing input as an initial seed and analyzes the root cause. Therefore, you must prepare one or more crashing inputs in advance.
 
-First, you should create a directory named `seeds` under the directory you created in the [first step](#1-create-a-directory). Next, place a crashing input in this directory with the file name `default`. The crashing input will be used as the default initial seed for each target. For more details, see the [default](./libtiff_cve-2016-10094/seeds/default) file in [libtiff_cve-2016-10094](./libtiff_cve-2016-10094).
+First, you should create a directory named `seeds` under the directory you created in the [first step](#1-create-a-directory). Next, place a crashing input in this directory with the file name `default`. The crashing input will be used as the default initial seed for each target. For more details, see the [default](./libtiff_cve-2016-10094/seeds/default) file in libtiff_cve-2016-10094.
 
 Optionally, you can place several different crashing inputs other than the `default` file in the `seeds` directory. This is used to measure the difference in performance of the RCA tool due to different initial seeds.
 
@@ -126,4 +126,4 @@ Basically, you can use the following example to create this file. Multiple groun
 <FILE_N>:<LINE_N>
 ```
 
-For more concrete examples, see [locations](./libtiff_cve-2016-10094/root_causes/locations) used in [libtiff_cve-2016-10094](./libtiff_cve-2016-10094) and [locations](./libxml2_cve-2017-5969/root_causes/locations) used in [libxml2_cve-2017-5969](./libxml2_cve-2017-5969/). The first example defines a single location as the root cause, while the second example defines multiple locations as the root cause.
+For more concrete examples, see [locations](./libtiff_cve-2016-10094/root_causes/locations) used in libtiff_cve-2016-10094 and [locations](./libxml2_cve-2017-5969/root_causes/locations) used in libxml2_cve-2017-5969. The first example defines a single location as the root cause, while the second example defines multiple locations as the root cause.
