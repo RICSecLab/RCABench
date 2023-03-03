@@ -13,7 +13,7 @@ Currently, RCABench supports two types of data augmentation methods as listed in
 
 ## How to add a new data augmentation method
 
-To add a new data augmentation method to RCABench, follow the three steps below.
+To add a new data augmentation method to RCABench, follow the two steps below.
 
 ### 1. Create a directory
 
@@ -148,5 +148,3 @@ cp -r ${WORKDIR}/. ${SHARED}/data
 ```
 
 For more concrete examples, see [src/run.sh](./methods/AFLcem/src/run.sh) and [src/convert.py](./methods/AFLcem/src/convert.py) used in AFLcem, and [src/run.sh](./methods/ConcFuzz/src/run.sh) and [src/convert.py](./methods/ConcFuzz/src/convert.py) used in ConcFuzz.
-
-### 3. Test your method
