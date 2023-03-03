@@ -49,7 +49,7 @@ We only tested RCABench on x86_64 Ubuntu 20.04. Currently, it is not certain whe
 
 This section describes commands for running an RCA experiment. For clarity of explanation, this section specifically describes the commands for an experiment using [AFLcem](./data_augmentation/methods/AFLcem/), a data augmentation method, and [VulnLocFE ](./feature_extraction/methods/VulnLocFE/), a feature extraction method, for target [libtiff_cve-2016-10094](./targets/libtiff_cve-2016-10094/).
 
-Of course, you can experiment with similar commands for other methods and targets. Please replace A, B and C in the commands below with your own experiments. You can see the targets and methods currently supported by RCABench at the following link.
+Of course, you can experiment with similar commands for other methods and targets. Please replace `AFLcem`, `VulnLocFE` and `libtiff_cve-2016-10094` in the commands below with your own experiments. You can see the targets and methods currently supported by RCABench at the following link.
 
 - [List of targets](./targets/README.md#list-of-currently-available-methods)
 - [List of data augmentation methods](./data_augmentation/README.md#list-of-currently-available-methods)
