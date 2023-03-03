@@ -47,7 +47,7 @@ We only tested RCABench on x86_64 Ubuntu 20.04. Currently, it is not certain whe
 
 ### Running an expriment
 
-This section describes commands for running an RCA experiment. For clarity of explanation, this section specifically describes the commands for an experiment using [AFLcem](./data_augmentation/methods/AFLcem/), a data augmentation method, and [VulnLocFE ](./feature_extraction/methods/VulnLocFE/), a feature extraction method, for target [libtiff_cve-2016-10094](./targets/libtiff_cve-2016-10094/).
+This section describes commands for running an experiment. For clarity of explanation, this section specifically describes the commands for an experiment using [AFLcem](./data_augmentation/methods/AFLcem/), a data augmentation method, and [VulnLocFE ](./feature_extraction/methods/VulnLocFE/), a feature extraction method, for target [libtiff_cve-2016-10094](./targets/libtiff_cve-2016-10094/).
 
 Of course, you can experiment with similar commands for other methods and targets. Please replace `AFLcem`, `VulnLocFE` and `libtiff_cve-2016-10094` in the commands below with your own experiments. You can see the targets and methods currently supported by RCABench at the following link.
 
@@ -59,7 +59,7 @@ The experiment consists of four main steps. Follow the instructions below and ex
 
 #### 1. Create a directory
 
-First, create a directory on the host machine to store the experiment results. RCABench runs RCA on the Docker container, but the artifacts of RCA (data augmentation results, final RCA results, etc.) are shared with the host machine.
+First, create a directory on the host machine to store the experiment results. RCABench runs RCA's programs on the docker container, but the artifacts of RCA (data augmentation results, final RCA results, etc.) are shared with the host machine.
 
 For example, create a directory with the following command:
 
