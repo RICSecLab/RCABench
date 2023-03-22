@@ -21,7 +21,7 @@ def parse_config(fname):
 
     return config
 
-def exec_DA(exp_name, DA, target, max_timeout, res_path, seed):
+def exec_DA(exp_name, DA, target, max_timeout, res_path, seed, build=True):
     if os.path.exists(res_path):
         logging.error("DA: Result already exists.")
         sys.exit(1)
@@ -29,10 +29,11 @@ def exec_DA(exp_name, DA, target, max_timeout, res_path, seed):
     env = os.environ.copy()
     env["DA"] = DA
     env["TARGET_ID"] = target
-    res = subprocess.run("data_augmentation/container_build.sh", env=env)
-    if res.returncode != 0:
-        logging.error("DA container_build.sh failed")
-        sys.exit(1)
+    if build:
+        res = subprocess.run("data_augmentation/container_build.sh", env=env)
+        if res.returncode != 0:
+            logging.error("DA container_build.sh failed")
+            sys.exit(1)
 
     os.makedirs(res_path)
     env["DA_MAX_TIMEOUT"] = str(max_timeout)
@@ -47,7 +48,7 @@ def exec_DA(exp_name, DA, target, max_timeout, res_path, seed):
         logging.error("DA container_run.sh failed")
         sys.exit(1)
 
-def exec_FE(exp_name, FE, target, da_timeout, da_path, base_path):
+def exec_FE(exp_name, FE, target, da_timeout, da_path, base_path, build=True):
     fe_path = base_path + "/" + str(da_timeout)
 
     if not os.path.exists(da_path):
@@ -62,17 +63,18 @@ def exec_FE(exp_name, FE, target, da_timeout, da_path, base_path):
     env["DA_TIMEOUT"] = str(da_timeout)
     env["DA_RESULT"] = da_path
     env["FE_OUTPUT"] = fe_path
-    res = subprocess.run("feature_extraction/container_build.sh", env=env)
-    if res.returncode != 0:
-        logging.error("FE: container_build.sh failed")
-        sys.exit(1)
+    if build:
+        res = subprocess.run("feature_extraction/container_build.sh", env=env)
+        if res.returncode != 0:
+            logging.error("FE: container_build.sh failed")
+            sys.exit(1)
 
     res = subprocess.run("feature_extraction/container_run.sh", env=env)
     if res.returncode != 0:
         logging.error("FE: container_run.sh failed")
         sys.exit(1)
 
-def run(config):
+def run(config, build=True):
 
     if config["DA"]["name"] is not None:
         exec_DA(config["exp_name"],
@@ -80,7 +82,8 @@ def run(config):
                 config["target_id"],
                 max(config["time"]),
                 config["DA"]["output"],
-                config["seed"])
+                config["seed"],
+                build=build)
 
     if not "FE" in config.keys():
         sys.exit(0)
@@ -91,7 +94,8 @@ def run(config):
                 config["target_id"],
                 da_timeout,
                 config["DA"]["output"],
-                config["FE"]["output"])
+                config["FE"]["output"],
+                build=build)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

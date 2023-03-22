@@ -28,8 +28,8 @@ def parse_args(args):
 
     return config, args.da_output, args.fe_output
 
-def run(config):
-    exp_manager.run(config)
+def run(config, build=True):
+    exp_manager.run(config, build=build)
 
 def do_exp(orig_config, da_output, fe_output, num):
     if num is None:
@@ -46,7 +46,10 @@ def do_exp(orig_config, da_output, fe_output, num):
                 config["DA"]["output"] = da_output+"_{}".format(i)
             if "FE" in config.keys():
                 config["FE"]["output"] = fe_output+"_{}".format(i)
-            run(config)
+            if i == 0:
+                run(config, build=True)
+            else:
+                run(config, build=False)
 
 
 if __name__ == "__main__":
