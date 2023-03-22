@@ -29,8 +29,8 @@ tar -xvzf cmake-3.16.2.tar.gz
 rm cmake-3.16.2.tar.gz
 mv cmake-3.16.2 cmake
 cd ./cmake
-./bootstrap
-make
+./bootstrap --parallel=$((`nproc`+1))
+make -j$((`nproc`+1))
 make install
 cd "$DA_ROOT/deps"
 
