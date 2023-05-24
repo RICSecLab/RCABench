@@ -1,0 +1,10 @@
+exp_name: exp_name
+mode: multiple # specify this explicitly to use multiple mode
+target_id: [readelf_cve-2019-9077, libtiff_cve-2016-10094]
+repeat: 3
+output: /path/to/result_dir
+DA:
+ name: [AFLcem, ConcFuzz]
+FE:
+ name: [AuroraFE, VulnLocFE]
+time: [20, 30] # seconds

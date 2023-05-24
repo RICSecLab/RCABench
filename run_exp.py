@@ -29,7 +29,7 @@ def parse_args(args):
     return config, args.da_output, args.fe_output
 
 def run(config, build=True):
-    exp_manager.run(config, build=build)
+    exp_manager.run_single(config, build=build)
 
 def do_exp(orig_config, da_output, fe_output, num):
     if num is None:
