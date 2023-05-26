@@ -13,6 +13,9 @@ on:
       - '**.py'
   workflow_dispatch:
 
+env:
+  SHELLCHECK_URL: https://github.com/koalaman/shellcheck/releases/download/v0.9.0/shellcheck-v0.9.0.linux.x86_64.tar.xz
+
 jobs:
   hadolint:
     name: hadolint
@@ -38,8 +41,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Install shellcheck
+        run: wget -O- -q $SHELLCHECK_URL | sudo tar -xJ -C /usr/local/bin --strip-components=1 --wildcards --no-same-owner --no-same-permissions '*/shellcheck'
       - name: Run shellcheck
-        uses: ludeeus/action-shellcheck@2.0.0
+        uses: liskin/gh-problem-matcher-wrap@v2
+        with:
+          linters: gcc
+          run: for file in $(find . -name *.sh); do /usr/local/bin/shellcheck --format=gcc --severity=warning $file; done;
   flake8:
     name: flake8
     runs-on: ubuntu-20.04
@@ -53,4 +61,7 @@ jobs:
       - name: Install flake8
         run: pip install flake8~=6.0.0
       - name: Run flake8
-        run: flake8 .
+        uses: liskin/gh-problem-matcher-wrap@v2
+        with:
+          linters: flake8
+          run: flake8 --exit-zero .
