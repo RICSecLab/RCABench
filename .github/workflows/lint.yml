@@ -48,7 +48,7 @@ jobs:
           action: add
           linters: gcc
       - name: Run shellcheck
-        run: for file in $(find . -name *.sh); do /usr/local/bin/shellcheck --format=gcc --severity=warning $file; done;
+        run: for file in $(find . -name *.sh); do /usr/local/bin/shellcheck --format=gcc --severity=warning $file && :; done;
       - uses: liskin/gh-problem-matcher-wrap@v2
         with:
           action: remove
