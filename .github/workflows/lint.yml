@@ -1,0 +1,72 @@
+name: lint
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - 'main'
+    paths:
+      - '**Dockerfile'
+      - '**.sh'
+      - '**.py'
+  workflow_dispatch:
+
+env:
+  SHELLCHECK_URL: https://github.com/koalaman/shellcheck/releases/download/v0.9.0/shellcheck-v0.9.0.linux.x86_64.tar.xz
+
+jobs:
+  hadolint:
+    name: hadolint
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Lint data_augmentation Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: data_augmentation/Dockerfile
+          verbose: true
+          failure-threshold: error
+      - name: Lint feature_extraction Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: feature_extraction/Dockerfile
+          verbose: true
+          failure-threshold: error
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install shellcheck
+        run: wget -O- -q $SHELLCHECK_URL | sudo tar -xJ -C /usr/local/bin --strip-components=1 --wildcards --no-same-owner --no-same-permissions '*/shellcheck'
+      - uses: liskin/gh-problem-matcher-wrap@v2
+        with:
+          action: add
+          linters: gcc
+      - name: Run shellcheck
+        run: for file in $(find . -name *.sh); do /usr/local/bin/shellcheck --format=gcc --severity=warning $file && :; done; true
+      - uses: liskin/gh-problem-matcher-wrap@v2
+        with:
+          action: remove
+          linters: gcc
+  flake8:
+    name: flake8
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Install flake8
+        run: pip install flake8~=6.0.0
+      - name: Run flake8
+        uses: liskin/gh-problem-matcher-wrap@v2
+        with:
+          linters: flake8
+          run: flake8 --exit-zero .
