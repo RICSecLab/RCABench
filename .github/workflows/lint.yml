@@ -1,0 +1,49 @@
+name: lint
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - 'main'
+    paths:
+      - '**Dockerfile'
+      - '**.sh'
+      - '**.py'
+  workflow_dispatch:
+
+jobs:
+  hadolint:
+    name: hadolint
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Run hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          verbose: true
+          failure-threshold: error
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Run shellcheck
+        uses: ludeeus/action-shellcheck@2.0.0
+  flake8:
+    name: flake8
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Install flake8~=6.0.0
+        run: pip install flake8
+      - name: Run flake8
+        run: flake8 .
