@@ -36,7 +36,7 @@ jobs:
           verbose: true
           failure-threshold: error
   shellcheck:
-    name: shellcheck
+    name: 'ShellCheck (annotations only)'
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -48,13 +48,13 @@ jobs:
           action: add
           linters: gcc
       - name: Run shellcheck
-        run: for file in $(find . -name *.sh); do /usr/local/bin/shellcheck --format=gcc --severity=warning $file && :; done; true
+        run: for file in $(find . -name *.sh); do /usr/local/bin/shellcheck --format=gcc $file && :; done; true
       - uses: liskin/gh-problem-matcher-wrap@v2
         with:
           action: remove
           linters: gcc
   flake8:
-    name: flake8
+    name: 'Flake8 (annotations only)'
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
