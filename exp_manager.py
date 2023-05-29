@@ -7,12 +7,14 @@ import sys
 import logging
 import time
 
-#TODO: use schema for more readbable and safer validation...
+
+# TODO: use schema for more readbable and safer validation...
 def parse_and_validate_config_single(config):
     if not "name" in config["DA"].keys():
         config["DA"]["name"] = None
 
     return config
+
 
 def parse_and_validate_config_multiple(config):
     # DA/FE.name must contain at least one DA/FE technique.
@@ -21,7 +23,7 @@ def parse_and_validate_config_multiple(config):
         if not key in config.keys():
             logging.error("No {} (multiple-mode)".format(key))
             return False
-        if not isinstance(config[key],list):
+        if not isinstance(config[key], list):
             config[key] = [config[key]]
         if len(config[key]) == 0:
             logging.error("{k} must include at least one available {k} (multiple-mode)".format(k=key))
@@ -32,17 +34,17 @@ def parse_and_validate_config_multiple(config):
         if not "name" in config[key].keys():
             logging.error("No name key in {} (multiple-mode)".format(key))
             return False
-        if not isinstance(config[key]["name"],list):
+        if not isinstance(config[key]["name"], list):
             config[key]["name"] = [config[key]["name"]]
         if len(config[key]["name"]) == 0:
             logging.error("name in {k} must include at least one available {k} (multiple-mode)".format(k=key))
             return False
         return True
 
-    if not ( validation("target_id") ):
+    if not (validation("target_id")):
         sys.exit(1)
 
-    if not ( validation_w_name("DA") and validation_w_name("FE") ):
+    if not (validation_w_name("DA") and validation_w_name("FE")):
         sys.exit(1)
 
     if not "repeat" in config.keys() or not int(config["repeat"]) >= 1:
@@ -52,6 +54,7 @@ def parse_and_validate_config_multiple(config):
     config["repeat"] = int(config["repeat"])
 
     return config
+
 
 def parse_and_validate_config(fname):
     with open(fname) as file:
@@ -76,6 +79,7 @@ def parse_and_validate_config(fname):
 
     logging.error("Invalid mode: {}".format(config["mode"]))
     sys.exit(1)
+
 
 def exec_DA(exp_name, DA, target, max_timeout, res_path, seed, build=True):
     if os.path.exists(res_path):
@@ -104,6 +108,7 @@ def exec_DA(exp_name, DA, target, max_timeout, res_path, seed, build=True):
         logging.error("DA container_run.sh failed")
         sys.exit(1)
 
+
 def exec_FE(exp_name, FE, target, da_timeout, da_path, base_path, build=True):
     fe_path = base_path + "/" + str(da_timeout)
 
@@ -130,6 +135,7 @@ def exec_FE(exp_name, FE, target, da_timeout, da_path, base_path, build=True):
         logging.error("FE: container_run.sh failed")
         sys.exit(1)
 
+
 def run_single(config, build=True):
 
     if config["DA"]["name"] is not None:
@@ -153,6 +159,7 @@ def run_single(config, build=True):
                 config["FE"]["output"],
                 build=build)
 
+
 def run_multiple(config):
     opath = config["output"]
     os.makedirs(opath, exist_ok=True)
@@ -173,7 +180,7 @@ def run_multiple(config):
                         max(config["time"]),
                         da_res,
                         config["seed"],
-                        build= (True if r == 0 else False))
+                        build=(True if r == 0 else False))
 
     for fe in config["FE"]["name"]:
         for da in config["DA"]["name"]:
@@ -192,6 +199,7 @@ def run_multiple(config):
                                 fe_res,
                                 build=(True if r == 0 and i == 0 else False))
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("config")
@@ -199,7 +207,7 @@ if __name__ == "__main__":
 
     config = parse_and_validate_config(args.config)
 
-    assert(config["mode"] in ["single", "multiple"])
+    assert config["mode"] in ["single", "multiple"]
 
     if config["mode"] == "single":
         run_single(config)

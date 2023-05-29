@@ -4,11 +4,13 @@ import json
 
 da_result = os.environ['DA_RESULT']
 
-with open(da_result+"/result.json","r") as f:
+with open(da_result+"/result.json", "r") as f:
     data = json.load(f)
 
+
 def conv_args(args):
-    return ";".join(args.replace("@@","***").split())
+    return ";".join(args.replace("@@", "***").split())
+
 
 config = """\
 [{TARGET_ID}]
