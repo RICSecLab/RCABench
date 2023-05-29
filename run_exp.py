@@ -1,8 +1,5 @@
 #!/bin/python3
-import yaml
 import argparse
-import os
-import subprocess
 import sys
 import logging
 import exp_manager
