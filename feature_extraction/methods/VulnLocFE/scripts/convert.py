@@ -11,9 +11,7 @@ from copy import deepcopy as dc
 import hashlib
 import shutil
 import tracer
-import itertools
-from multiprocessing import Pool, TimeoutError
-import glob
+from multiprocessing import Pool
 import json
 import subprocess
 import env
@@ -77,7 +75,7 @@ def parse_args():
             try:
                 tmp = detailed_config['mutate_range'][arg_no].split('~')
                 mutate_range = range(int(tmp[0]), int(tmp[1]))
-            except:
+            except Exception:
                 raise Exception('ERROR: Please check the value of mutate_range in your config file.')
             processed_fmt.append(['int', len(processed_arg), 1, mutate_range])
             processed_arg.append(int(detailed_config['poc'][arg_no]))
@@ -85,7 +83,7 @@ def parse_args():
             try:
                 tmp = detailed_config['mutate_range'][arg_no].split('~')
                 mutate_range = list(np.arange(float(tmp[0]), float(tmp[1]), float(tmp[2])))
-            except:
+            except Exception:
                 raise Exception('ERROR: Please check the value of mutate_range in your config file.')
             processed_fmt.append(['float', len(processed_arg), 1, mutate_range])
             processed_arg.append(float(detailed_config['poc'][arg_no]))
@@ -191,7 +189,7 @@ def just_trace(input_no, raw_args, poc_fmt, trace_cmd, trace_replace_idx):
 
 def ifTracer(cmd_list):
     try:
-        #TODO
+        # TODO
         tracer_cmd_list = ["timeout", "300", env.dynamorio_path, '-c', env.iftracer_path, '--'] + cmd_list
         # execute command
         p1 = subprocess.Popen(tracer_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -215,7 +213,7 @@ def gen_report(input_no, raw_args, poc_fmt, trace_cmd, trace_replace_idx, crash_
         trace = ifTracer(trace_cmd)
         trace_hash = calc_trace_hash(trace)
         return [input_no, trace, trace_hash, crash_result]
-    except:
+    except Exception:
         return None
 
 

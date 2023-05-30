@@ -52,7 +52,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with open(args.results) as fres,\
-        open(args.rc_dir + "/locations") as fpredef:
+         open(args.rc_dir + "/locations") as fpredef:
 
         ranking = [l for l in fres.readlines() if "show-INFO" in l]
 

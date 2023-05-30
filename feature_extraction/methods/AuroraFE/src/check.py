@@ -9,6 +9,7 @@ def uniq(ls):
             new.append(l)
     return new
 
+
 def check_locations(ranking, locs):
     # Sample
     # 0x000055555555eb84 -- rdx min_reg_val_less 0x5555555f1740 -- 0.9949575371549894 -- add rdx, rax (path rank: 0.8621912170574705) //t2p_readwrite_pdf_image_tile at tiff2pdf.c:2911
@@ -18,14 +19,14 @@ def check_locations(ranking, locs):
     # Aurora shows only basenames.
     # Aurora calls addr2line with "-e {} -a 0x{:x} -f -C -s -i -p".
 
-    loc_ranking = [r.split("//")[-1].split()[2] for r in ranking\
-            if (not "inlined by" in r) and ("at" in r.split("//")[-1])]
+    loc_ranking = [r.split("//")[-1].split()[2] for r in ranking
+                   if (not "inlined by" in r) and ("at" in r.split("//")[-1])]
     loc_ranking_uniq = uniq(loc_ranking)
 
     r = None
     ru = None
     for loc in locs:
-        loc = loc.replace("\n","")
+        loc = loc.replace("\n", "")
         if not loc in loc_ranking:
             continue
 
@@ -42,6 +43,7 @@ def check_locations(ranking, locs):
 
     return (r+1, ru+1)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('results')
@@ -49,7 +51,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with open(args.results) as fres,\
-        open(args.rc_dir + "/locations") as fpredef:
+         open(args.rc_dir + "/locations") as fpredef:
 
         ranking = [l for l in fres.readlines() if " -- " in l]
 
