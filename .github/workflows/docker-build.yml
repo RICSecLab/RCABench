@@ -33,7 +33,7 @@ jobs:
   da_build:
     name: 'Test docker build for data augmentation'
     runs-on: ubuntu-20.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -54,7 +54,7 @@ jobs:
           # Wrap `docker build` with `docker buildx build`
           docker() {
             if [ "$1" = "build" ]; then
-              command docker buildx "$1" --cache-from "type=local,src=/tmp/.buildx-cache" --cache-to "type=local,dest=/tmp/.buildx-cache" "${@:2}"
+              command docker buildx "$1" --cache-from "type=local,src=/tmp/.buildx-cache" --cache-to "type=local,dest=/tmp/.buildx-cache-new,mode=max" "${@:2}"
             else
               command docker "$@"
             fi
@@ -73,7 +73,7 @@ jobs:
   fe_build:
     name: 'Test docker build for feature extraction'
     runs-on: ubuntu-20.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -94,7 +94,7 @@ jobs:
           # Wrap `docker build` with `docker buildx build`
           docker() {
             if [ "$1" = "build" ]; then
-              command docker buildx "$1" --cache-from "type=local,src=/tmp/.buildx-cache" --cache-to "type=local,dest=/tmp/.buildx-cache" "${@:2}"
+              command docker buildx "$1" --cache-from "type=local,src=/tmp/.buildx-cache" --cache-to "type=local,dest=/tmp/.buildx-cache-new,mode=max" "${@:2}"
             else
               command docker "$@"
             fi
