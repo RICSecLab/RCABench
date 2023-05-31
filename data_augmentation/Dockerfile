@@ -18,17 +18,17 @@ ARG USER_GID=$USER_UID
 RUN groupadd -o --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
-RUN mkdir -p ${SHARED} ${WORKDIR} && \
-    chown user:user ${SHARED} ${WORKDIR} && \
-    chmod 744 ${SHARED} ${WORKDIR}
+RUN mkdir -p ${SHARED} ${WORKDIR} \
+    && chown user:user ${SHARED} ${WORKDIR} \
+    && chmod 744 ${SHARED} ${WORKDIR}
 
 # Setup Data Augmenatation
 ARG DA
 ENV DA ${DA}
 ENV DA_ROOT /data_augmentation
 USER root:root
-RUN mkdir -p ${DA_ROOT} && \
-    chown user:user ${DA_ROOT}
+RUN mkdir -p ${DA_ROOT} \
+    && chown user:user ${DA_ROOT}
 COPY --chown=user:user data_augmentation/methods/${DA}/ ${DA_ROOT}
 RUN ${DA_ROOT}/preinstall.sh
 USER user:user
@@ -39,8 +39,8 @@ RUN echo '. ${DA_ROOT}/config.sh' >> ~/.bash_profile
 ARG TARGET_ID
 ENV TARGET_ID ${TARGET_ID}
 USER root:root
-RUN mkdir -p ${TARGET_ROOT} && \
-    chown user:user ${TARGET_ROOT}
+RUN mkdir -p ${TARGET_ROOT} \
+    && chown user:user ${TARGET_ROOT}
 COPY --chown=user:user targets/${TARGET_ID} ${TARGET_ROOT}
 RUN ${TARGET_ROOT}/preinstall.sh
 USER user:user
