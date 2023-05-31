@@ -54,7 +54,13 @@ jobs:
           # Wrap `docker build` with `docker buildx build`
           docker() {
             if [ "$1" = "build" ]; then
-              command docker buildx "$1" --cache-from "type=local,src=/tmp/.buildx-cache" --cache-to "type=local,dest=/tmp/.buildx-cache-new,mode=max" "${@:2}"
+              args=()
+              for arg in "$@"; do
+                if [[ $arg != "--no-cache" ]]; then
+                  args+=("$arg")
+                fi
+              done
+              command docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" --cache-to "type=local,dest=/tmp/.buildx-cache-new,mode=max" "${args[@]:1}"
             else
               command docker "$@"
             fi
@@ -94,7 +100,13 @@ jobs:
           # Wrap `docker build` with `docker buildx build`
           docker() {
             if [ "$1" = "build" ]; then
-              command docker buildx "$1" --cache-from "type=local,src=/tmp/.buildx-cache" --cache-to "type=local,dest=/tmp/.buildx-cache-new,mode=max" "${@:2}"
+              args=()
+              for arg in "$@"; do
+                if [[ $arg != "--no-cache" ]]; then
+                  args+=("$arg")
+                fi
+              done
+              command docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" --cache-to "type=local,dest=/tmp/.buildx-cache-new,mode=max" "${args[@]:1}"
             else
               command docker "$@"
             fi
