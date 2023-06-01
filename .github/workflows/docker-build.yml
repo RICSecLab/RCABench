@@ -29,9 +29,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-da-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-da-${{ matrix.da_method }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-da
+            ${{ runner.os }}-buildx-da-${{ matrix.da_method }}
 
       - name: Docker build
         env:
@@ -81,9 +81,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-fe-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-fe-${{ matrix.fe_method }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-fe
+            ${{ runner.os }}-buildx-fe-${{ matrix.fe_method }}
 
       - name: Docker build
         env:
