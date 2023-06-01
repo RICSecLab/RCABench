@@ -1,21 +1,24 @@
-name: docker-build
+name: docker-build-manual
 
 on:
-  pull_request:
-    branches:
-      - '*'
-  push:
-    branches:
-      - 'main'
-    paths:
-      - '**Dockerfile'
+  workflow_dispatch:
+    inputs:
+      da:
+        required: true
+        type: string
+        default: 'AFLcem'
+      fe:
+        required: true
+        type: string
+        default: 'VulnLocFE'
+      target_id:
+        required: true
+        type: string
+        default: 'libtiff_cve-2016-10094'
 
 jobs:
-  da_matrix:
+  da_build:
     name: 'Test docker build for data augmentation'
-    strategy:
-      matrix:
-        da_method: ['AFLcem', 'ConcFuzz']
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
@@ -35,8 +38,8 @@ jobs:
 
       - name: Docker build
         env:
-          DA: ${{ matrix.da_method }}
-          TARGET_ID: 'libtiff_cve-2016-10094'
+          DA: ${{ inputs.da }}
+          TARGET_ID: ${{ inputs.target_id }}
         run: |
           # Wrap `docker build` with `docker buildx build`
           docker() {
@@ -63,11 +66,8 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-  fe_matrix:
+  fe_build:
     name: 'Test docker build for feature extraction'
-    strategy:
-      matrix:
-        fe_method: ['AuroraFE', 'VulnLocFE']
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
@@ -87,8 +87,8 @@ jobs:
 
       - name: Docker build
         env:
-          FE: ${{ matrix.fe_method }}
-          TARGET_ID: 'libtiff_cve-2016-10094'
+          FE: ${{ inputs.fe }}
+          TARGET_ID: ${{ inputs.target_id }}
         run: |
           # Wrap `docker build` with `docker buildx build`
           docker() {
