@@ -16,7 +16,8 @@ def check_locations(ranking, locs):
     # [10-Jan-23 10:07:47-show-INFO]: [INSN-1] 0x00000000004630fa -> tif_read.c:767 (l2norm: 1.414214; normalized(N): 1.000000; normalized(S): 1.000000)
 
     # ref
-    # https://github.com/RICSecLab/triage-bench/blob/master/analyzers/vulnloc/src/check.py
+    # https://github.com/VulnLoc/VulnLoc/blob/e1f607abea71db0eb57b41684f3dfae0ecee4321/code/patchloc.py#L180
+    # https://github.com/VulnLoc/VulnLoc/blob/e1f607abea71db0eb57b41684f3dfae0ecee4321/code/patchloc.py#L227
 
     # TODO: better matching
     loc_ranking = [r.split()[5] for r in ranking]
