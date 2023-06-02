@@ -117,7 +117,7 @@ Optionally, you can place several different crashing inputs other than the `defa
 
 RCABench evaluates the results inferred by each feature extraction method based on the ground truth of the root cause, which is predefined by humans. Currently, RCABench supports the definition of the root cause at the line level of the source code. It is also possible to register multiple ground truths.
 
-Basically, you can use the following example to create this file. Multiple ground truths are defined using the format shown below. Each line represents one ground truth, where `<FILE_*>` and `<LINE_*>` indicate the file name of each ground truth and the line number of that file.
+Basically, you can use the following example to create this file. Multiple ground truths are defined using the format shown below. Each line represents one ground truth, where `<FILE_*>` and `<LINE_*>` indicate the file name of each ground truth and the line number of that file. In the current version of RCABench, `<FILE_*>` can not include directry names. For example, file.c is valid, but dir/file.c is invalid.
 
 ```text
 <FILE_1>:<LINE_1>
