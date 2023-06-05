@@ -1,4 +1,4 @@
-#ref: https://github.com/VulnLoc/VulnLoc/blob/e1f607abea71db0eb57b41684f3dfae0ecee4321/code/fuzz.py
+# ref: https://github.com/VulnLoc/VulnLoc/blob/e1f607abea71db0eb57b41684f3dfae0ecee4321/code/fuzz.py
 import argparse
 import ConfigParser
 import logging
@@ -11,9 +11,7 @@ from copy import deepcopy as dc
 import hashlib
 import shutil
 import tracer
-import itertools
-from multiprocessing import Pool, TimeoutError
-import glob
+from multiprocessing import Pool
 import json
 import subprocess
 import env
@@ -24,10 +22,11 @@ OutFolder = ''
 TmpFolder = ''
 TraceFolder = ''
 
-SeedPool = [] # Each element is in the fmt of [<process_tag>, <seed_content>]. <process_tag>: True (selected) / False (not selected)
+SeedPool = []   # Each element is in the fmt of [<process_tag>, <seed_content>]. <process_tag>: True (selected) / False (not selected)
 SeedTraceHashList = []
-ReportCollection = [] # Each element if in the fmt of [<trace_hash>, <tag>]. <tag>: m - malicious / b - benign
+ReportCollection = []   # Each element if in the fmt of [<trace_hash>, <tag>]. <tag>: m - malicious / b - benign
 TraceHashCollection = []
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="ConcFuzz")
@@ -63,7 +62,7 @@ def parse_args():
     if arg_num != len(detailed_config['poc_fmt']) and arg_num != len(detailed_config['mutate_range']):
         raise Exception("ERROR: Your defined poc is not matched with poc_fmt/mutate_range")
     processed_arg = []
-    processed_fmt = [] # each element is in the fmt of [<type>, <start_idx>, <size>, <mutate_range>]
+    processed_fmt = []  # each element is in the fmt of [<type>, <start_idx>, <size>, <mutate_range>]
     for arg_no in range(arg_num):
         if detailed_config['poc_fmt'][arg_no] == 'bfile':
             if not os.path.exists(detailed_config['poc'][arg_no]):
@@ -76,7 +75,7 @@ def parse_args():
             try:
                 tmp = detailed_config['mutate_range'][arg_no].split('~')
                 mutate_range = range(int(tmp[0]), int(tmp[1]))
-            except:
+            except Exception:
                 raise Exception('ERROR: Please check the value of mutate_range in your config file.')
             processed_fmt.append(['int', len(processed_arg), 1, mutate_range])
             processed_arg.append(int(detailed_config['poc'][arg_no]))
@@ -84,7 +83,7 @@ def parse_args():
             try:
                 tmp = detailed_config['mutate_range'][arg_no].split('~')
                 mutate_range = list(np.arange(float(tmp[0]), float(tmp[1]), float(tmp[2])))
-            except:
+            except Exception:
                 raise Exception('ERROR: Please check the value of mutate_range in your config file.')
             processed_fmt.append(['float', len(processed_arg), 1, mutate_range])
             processed_arg.append(float(detailed_config['poc'][arg_no]))
@@ -97,7 +96,7 @@ def parse_args():
     detailed_config['poc_fmt'] = processed_fmt
     detailed_config.pop('mutate_range')
     # process the optional args
-    if 'tmp_filename_len' in detailed_config: # read the length of temperol filename
+    if 'tmp_filename_len' in detailed_config:   # read the length of temperol filename
         utils.FileNameLen = int(detailed_config['tmp_filename_len'][0])
     # get all the replace idx in the cmd
     tmp = ';'.join(detailed_config['trace_cmd']).split('***')
@@ -112,106 +111,114 @@ def parse_args():
 
     return args.tag, detailed_config, args.verbose
 
+
 def init_log(tag, verbose, folder):
-	global OutFolder, TmpFolder, TraceFolder
-	OutFolder = os.path.join(folder, 'output_%d' % int(time()))
-	if os.path.exists(OutFolder):
-		raise Exception("ERROR: Output folder already exists! -> %s" % OutFolder)
-	else:
-		os.mkdir(OutFolder)
-	TmpFolder = os.path.join(OutFolder, 'tmp')
-	if not os.path.exists(TmpFolder):
-		os.mkdir(TmpFolder)
-	TraceFolder = os.path.join(OutFolder, 'traces')
-	if not os.path.exists(TraceFolder):
-		os.mkdir(TraceFolder)
-	log_path = os.path.join(OutFolder, 'fuzz.log')
-	if verbose == 'True':
-		logging.basicConfig(filename=log_path, filemode='a+', level=logging.DEBUG,
-							format="[%(asctime)s-%(funcName)s-%(levelname)s]: %(message)s",
-							datefmt="%d-%b-%y %H:%M:%S")
-	else:
-		pass
-	console = logging.StreamHandler()
-	console.setLevel(logging.INFO)
-	console_fmt = logging.Formatter(fmt="[%(asctime)s-%(funcName)s-%(levelname)s]: %(message)s", datefmt="%d-%b-%y %H:%M:%S")
-	console.setFormatter(console_fmt)
-	logging.getLogger().addHandler(console)
-	logging.info('Output Folder: %s' % OutFolder)
-	logging.debug("CVE: %s" % tag)
-	logging.debug("Config Info: \n%s" % '\n'.join(['\t%s : %s' % (key, config_info[key]) for key in config_info]))
+    global OutFolder, TmpFolder, TraceFolder
+    OutFolder = os.path.join(folder, 'output_%d' % int(time()))
+    if os.path.exists(OutFolder):
+        raise Exception("ERROR: Output folder already exists! -> %s" % OutFolder)
+    else:
+        os.mkdir(OutFolder)
+    TmpFolder = os.path.join(OutFolder, 'tmp')
+    if not os.path.exists(TmpFolder):
+        os.mkdir(TmpFolder)
+    TraceFolder = os.path.join(OutFolder, 'traces')
+    if not os.path.exists(TraceFolder):
+        os.mkdir(TraceFolder)
+    log_path = os.path.join(OutFolder, 'fuzz.log')
+    if verbose == 'True':
+        logging.basicConfig(filename=log_path, filemode='a+', level=logging.DEBUG,
+                            format="[%(asctime)s-%(funcName)s-%(levelname)s]: %(message)s",
+                            datefmt="%d-%b-%y %H:%M:%S")
+    else:
+        pass
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    console_fmt = logging.Formatter(fmt="[%(asctime)s-%(funcName)s-%(levelname)s]: %(message)s", datefmt="%d-%b-%y %H:%M:%S")
+    console.setFormatter(console_fmt)
+    logging.getLogger().addHandler(console)
+    logging.info('Output Folder: %s' % OutFolder)
+    logging.debug("CVE: %s" % tag)
+    logging.debug("Config Info: \n%s" % '\n'.join(['\t%s : %s' % (key, config_info[key]) for key in config_info]))
+
 
 def prepare_args(input_no, poc, poc_fmt):
-	global TmpFolder
-	# prepare the arguments
-	arg_num = len(poc_fmt)
-	arg_list = []
-	for arg_no in range(arg_num):
-		if poc_fmt[arg_no][0] == 'bfile': # write the list into binary file
-			content = np.asarray(poc[poc_fmt[arg_no][1]: poc_fmt[arg_no][1]+poc_fmt[arg_no][2]]).astype(np.int)
-			tmp_filepath = os.path.join(TmpFolder, 'tmp_%d' % input_no)
-			utils.write_bin(tmp_filepath, content)
-			arg_list.append(tmp_filepath)
-		elif poc_fmt[arg_no][0] == 'int':
-			arg_list.append(int(poc[poc_fmt[arg_no][1]]))
-		elif poc_fmt[arg_no][0] == 'float':
-			arg_list.append(float(poc[poc_fmt[arg_no][1]]))
-		elif poc_fmt[arg_no][0] == 'str': # concatenate all the chars together
-			arg_list.append(''.join(poc[poc_fmt[arg_no][1]: poc_fmt[arg_no][1]+poc_fmt[arg_no][2]]))
-		else:
-			raise Exception("ERROR: Unknown poc_fmt -> %s" % poc_fmt[arg_no][0])
-	return arg_list
+    global TmpFolder
+    # prepare the arguments
+    arg_num = len(poc_fmt)
+    arg_list = []
+    for arg_no in range(arg_num):
+        if poc_fmt[arg_no][0] == 'bfile':   # write the list into binary file
+            content = np.asarray(poc[poc_fmt[arg_no][1]: poc_fmt[arg_no][1]+poc_fmt[arg_no][2]]).astype(np.int)
+            tmp_filepath = os.path.join(TmpFolder, 'tmp_%d' % input_no)
+            utils.write_bin(tmp_filepath, content)
+            arg_list.append(tmp_filepath)
+        elif poc_fmt[arg_no][0] == 'int':
+            arg_list.append(int(poc[poc_fmt[arg_no][1]]))
+        elif poc_fmt[arg_no][0] == 'float':
+            arg_list.append(float(poc[poc_fmt[arg_no][1]]))
+        elif poc_fmt[arg_no][0] == 'str':   # concatenate all the chars together
+            arg_list.append(''.join(poc[poc_fmt[arg_no][1]: poc_fmt[arg_no][1]+poc_fmt[arg_no][2]]))
+        else:
+            raise Exception("ERROR: Unknown poc_fmt -> %s" % poc_fmt[arg_no][0])
+    return arg_list
+
 
 def prepare_cmd(cmd_list, replace_idx, arg_list):
-	replaced_cmd = dc(cmd_list)
-	arg_num = len(replace_idx)
-	for arg_no in range(arg_num):
-		replaced_cmd[replace_idx[arg_no]] = str(arg_list[arg_no])
-	replaced_cmd = ''.join(replaced_cmd)
-	replaced_cmd = replaced_cmd.split(';')
-	return replaced_cmd
+    replaced_cmd = dc(cmd_list)
+    arg_num = len(replace_idx)
+    for arg_no in range(arg_num):
+        replaced_cmd[replace_idx[arg_no]] = str(arg_list[arg_no])
+    replaced_cmd = ''.join(replaced_cmd)
+    replaced_cmd = replaced_cmd.split(';')
+    return replaced_cmd
+
 
 def calc_trace_hash(trace):
-	trace_str = '\n'.join(trace)
-	return hashlib.sha256(trace_str).hexdigest()
+    trace_str = '\n'.join(trace)
+    return hashlib.sha256(trace_str).hexdigest()
+
 
 def just_trace(input_no, raw_args, poc_fmt, trace_cmd, trace_replace_idx):
-	processed_args = prepare_args(input_no, raw_args, poc_fmt)
-	cmd = prepare_cmd(trace_cmd, trace_replace_idx, processed_args)
-	trace = tracer.ifTracer(cmd)
-	trace_hash = calc_trace_hash(trace)
-	return trace, trace_hash
+    processed_args = prepare_args(input_no, raw_args, poc_fmt)
+    cmd = prepare_cmd(trace_cmd, trace_replace_idx, processed_args)
+    trace = tracer.ifTracer(cmd)
+    trace_hash = calc_trace_hash(trace)
+    return trace, trace_hash
+
 
 def ifTracer(cmd_list):
-        try:
-            #TODO
-            tracer_cmd_list = ["timeout", "300", env.dynamorio_path, '-c', env.iftracer_path, '--'] + cmd_list
-            # execute command
-            p1 = subprocess.Popen(tracer_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out, err = p1.communicate()
-            # parse the output
-            if_list = []
-            for aline in out.split("\n"):
-                    if '0x00000000004' in aline:
-                            t = aline.split(' => ')
-                            if_list.append(t[0])
-            return if_list
-        except Exception as e:
-            p1.kill()
-            raise Exception("iftracer")
+    try:
+        # TODO
+        tracer_cmd_list = ["timeout", "300", env.dynamorio_path, '-c', env.iftracer_path, '--'] + cmd_list
+        # execute command
+        p1 = subprocess.Popen(tracer_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p1.communicate()
+        # parse the output
+        if_list = []
+        for aline in out.split("\n"):
+            if '0x00000000004' in aline:
+                t = aline.split(' => ')
+                if_list.append(t[0])
+        return if_list
+    except Exception as e:
+        p1.kill()
+        raise Exception("iftracer")
+
 
 def gen_report(input_no, raw_args, poc_fmt, trace_cmd, trace_replace_idx, crash_result):
-        try:
-            processed_args = prepare_args(input_no, raw_args, poc_fmt)
-            trace_cmd = prepare_cmd(trace_cmd, trace_replace_idx, processed_args)
-            trace = ifTracer(trace_cmd)
-            trace_hash = calc_trace_hash(trace)
-            return [input_no, trace, trace_hash, crash_result]
-        except:
-            return None
+    try:
+        processed_args = prepare_args(input_no, raw_args, poc_fmt)
+        trace_cmd = prepare_cmd(trace_cmd, trace_replace_idx, processed_args)
+        trace = ifTracer(trace_cmd)
+        trace_hash = calc_trace_hash(trace)
+        return [input_no, trace, trace_hash, crash_result]
+    except Exception:
+        return None
+
 
 def read_da_results(res_path, da_timeout):
-    with open(res_path+"/result.json","r") as f:
+    with open(res_path+"/result.json", "r") as f:
         data = json.load(f)
 
     cres = []
@@ -225,13 +232,14 @@ def read_da_results(res_path, da_timeout):
     seed = utils.read_bin(res_path+"/inputs/"+data["seed"])
     return cres, nres, seed
 
+
 def gen_concfuzz_output(config_info):
     global TraceHashCollection, ReportCollection, SeedPool, SeedTraceHashList, TraceFolder, TmpFolder
 
     pool = Pool(utils.ProcessNum)
-    result_collection = [] # each element is in the fmt of [id, trace, trace_hash, crash_result, trace_diff_id]
+    result_collection = []  # each element is in the fmt of [id, trace, trace_hash, crash_result, trace_diff_id]
 
-    crash_inputs, non_crash_inputs,seed = read_da_results(config_info["results_path"], config_info["da_timeout"])
+    crash_inputs, non_crash_inputs, seed = read_da_results(config_info["results_path"], config_info["da_timeout"])
 
     trace, trace_hash = just_trace(0, seed, config_info['poc_fmt'], config_info['trace_cmd'], config_info['trace_replace_idx'])
     logging.debug('PoC Hash: %s' % trace_hash)
@@ -249,23 +257,23 @@ def gen_concfuzz_output(config_info):
 
     res = []
     c_num = len(crash_inputs)
-    for i,crash_input in enumerate(crash_inputs):
-            res.append(pool.apply_async(
-                    gen_report,
-                    args = (i, crash_input, config_info['poc_fmt'], config_info['trace_cmd'], config_info['trace_replace_idx'], "m" ),
-                    callback = result_collection.append
-            ))
+    for i, crash_input in enumerate(crash_inputs):
+        res.append(pool.apply_async(
+                gen_report,
+                args=(i, crash_input, config_info['poc_fmt'], config_info['trace_cmd'], config_info['trace_replace_idx'], "m"),
+                callback=result_collection.append
+        ))
 
-    for i,non_crash_input in enumerate(non_crash_inputs):
-            res.append(pool.apply_async(
-                    gen_report,
-                    args = (i+c_num, non_crash_input, config_info['poc_fmt'], config_info['trace_cmd'], config_info['trace_replace_idx'], "b"),
-                    callback = result_collection.append
-            ))
+    for i, non_crash_input in enumerate(non_crash_inputs):
+        res.append(pool.apply_async(
+                gen_report,
+                args=(i+c_num, non_crash_input, config_info['poc_fmt'], config_info['trace_cmd'], config_info['trace_replace_idx'], "b"),
+                callback=result_collection.append
+        ))
 
     for r in tqdm(res):
         try:
-            r.get() # TODO
+            r.get()  # TODO
         except Exception as e:
             logging.error('Crash error %s' % str(e))
 
@@ -279,16 +287,16 @@ def gen_concfuzz_output(config_info):
             continue
         # save the trace
         if item[2] not in TraceHashCollection:
-                TraceHashCollection.append(item[2])
-                trace_path = os.path.join(TraceFolder, item[2])
-                np.savez(trace_path, trace=item[1])
+            TraceHashCollection.append(item[2])
+            trace_path = os.path.join(TraceFolder, item[2])
+            np.savez(trace_path, trace=item[1])
         # check whether to add it into the seed pool
         if item[3] == 'm' and item[2] not in SeedTraceHashList:
-                SeedPool.append([False, inputs[item[0]]])
-                SeedTraceHashList.append(item[2])
+            SeedPool.append([False, inputs[item[0]]])
+            SeedTraceHashList.append(item[2])
         # Update reports
         if [item[2], item[3]] not in ReportCollection:
-                ReportCollection.append([item[2], item[3]])
+            ReportCollection.append([item[2], item[3]])
 
     # save all the remaining info
     report_filepath = os.path.join(OutFolder, 'reports.pkl')
@@ -304,7 +312,8 @@ def gen_concfuzz_output(config_info):
     logging.debug("Finish writing all the hash of seeds!")
     logging.debug('Done!')
 
+
 if __name__ == '__main__':
-	tag, config_info, verbose = parse_args()
-	init_log(tag, verbose, config_info['folder'])
-	gen_concfuzz_output(config_info)
+    tag, config_info, verbose = parse_args()
+    init_log(tag, verbose, config_info['folder'])
+    gen_concfuzz_output(config_info)

@@ -1,5 +1,6 @@
 import argparse
 
+
 def uniq(ls):
     # preserve order
     new = []
@@ -7,6 +8,7 @@ def uniq(ls):
         if not l in new:
             new.append(l)
     return new
+
 
 def check_locations(ranking, locs):
     # Sample
@@ -17,14 +19,14 @@ def check_locations(ranking, locs):
     # Aurora shows only basenames.
     # Aurora calls addr2line with "-e {} -a 0x{:x} -f -C -s -i -p".
 
-    loc_ranking = [r.split("//")[-1].split()[2] for r in ranking\
-            if (not "inlined by" in r) and ("at" in r.split("//")[-1])]
+    loc_ranking = [r.split("//")[-1].split()[2] for r in ranking
+                   if (not "inlined by" in r) and ("at" in r.split("//")[-1])]
     loc_ranking_uniq = uniq(loc_ranking)
 
     r = None
     ru = None
     for loc in locs:
-        loc = loc.replace("\n","")
+        loc = loc.replace("\n", "")
         if not loc in loc_ranking:
             continue
 
@@ -41,6 +43,7 @@ def check_locations(ranking, locs):
 
     return (r+1, ru+1)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('results')
@@ -48,7 +51,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with open(args.results) as fres,\
-        open(args.rc_dir + "/locations") as fpredef:
+         open(args.rc_dir + "/locations") as fpredef:
 
         ranking = [l for l in fres.readlines() if " -- " in l]
 

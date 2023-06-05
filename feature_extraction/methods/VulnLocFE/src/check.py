@@ -1,5 +1,6 @@
 import argparse
 
+
 def uniq(ls):
     # preserve order
     new = []
@@ -7,6 +8,7 @@ def uniq(ls):
         if not l in new:
             new.append(l)
     return new
+
 
 def check_locations(ranking, locs):
     # Sample
@@ -26,7 +28,7 @@ def check_locations(ranking, locs):
     r = None
     ru = None
     for loc in locs:
-        loc = loc.replace("\n","")
+        loc = loc.replace("\n", "")
         if not loc in loc_ranking:
             continue
 
@@ -43,6 +45,7 @@ def check_locations(ranking, locs):
 
     return (r+1, ru+1)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('results')
@@ -50,7 +53,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with open(args.results) as fres,\
-        open(args.rc_dir + "/locations") as fpredef:
+         open(args.rc_dir + "/locations") as fpredef:
 
         ranking = [l for l in fres.readlines() if "show-INFO" in l]
 

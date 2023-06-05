@@ -1,11 +1,9 @@
 #!/bin/python3
-import yaml
 import argparse
-import os
-import subprocess
 import sys
 import logging
 import exp_manager
+
 
 def parse_args(args):
     config = {}
@@ -23,13 +21,15 @@ def parse_args(args):
     if not (args.fe or args.da):
         logging.error("Nothing to do?")
         sys.exit(1)
-    config["time"] = list(map(int,args.time))
+    config["time"] = list(map(int, args.time))
     config["seed"] = args.seed
 
     return config, args.da_output, args.fe_output
 
+
 def run(config, build=True):
     exp_manager.run_single(config, build=build)
+
 
 def do_exp(orig_config, da_output, fe_output, num):
     if num is None:

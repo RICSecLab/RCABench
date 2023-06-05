@@ -10,7 +10,7 @@ timeout = int(os.environ['DA_TIMEOUT'])
 crash_dir = workdir+"/inputs/crashes"
 non_crash_dir = workdir+"/inputs/non_crashes"
 
-with open(da_result+"/result.json","r") as f:
+with open(da_result+"/result.json", "r") as f:
     data = json.load(f)
 
 os.makedirs(crash_dir, exist_ok=True)

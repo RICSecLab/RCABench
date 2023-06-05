@@ -5,8 +5,10 @@ import yaml
 
 random.seed()
 
+
 def conv_args(args):
-    return ";".join(args.replace("@@","***").split())
+    return ";".join(args.replace("@@", "***").split())
+
 
 with open(os.environ["DA_ROOT"]+"/crash_tags.yaml", "r") as f:
     ctags = yaml.safe_load(f)
@@ -26,7 +28,7 @@ crash_tag={CTAG}
            TARGET_ID=os.environ['TARGET_ID'],
            RELPATH=os.environ['RELPATH'],
            ARGS=conv_args(os.environ['ARGS']),
-           RAND=random.randint(1,1000),
+           RAND=random.randint(1, 1000),
            SEED=os.environ["DA_SEED"],
            CTAG=ctags[os.environ['TARGET_ID']])
 
