@@ -50,13 +50,17 @@ jobs:
       - name: Run shellcheck
         run: |
           run_shellcheck() {
-            for arg in "$@"; do
+            args=("$0" "$@")
+            for arg in "${args[@]}"; do
               SHELLCHECK_OUT=$(/usr/local/bin/shellcheck --format=gcc "$arg") && :;
               if [ -n "$SHELLCHECK_OUT" ];then
                 echo "$SHELLCHECK_OUT"
               fi
               # fail on error
-              echo "$SHELLCHECK_OUT" | grep -q -v -E '^.*:[[:digit:]]:[[:digit:]]:\s+(?:fatal\s+)?(error):\s+.*$'
+              if (echo "$SHELLCHECK_OUT" | grep -q -E '^.*:[[:digit:]]:[[:digit:]]:\s+(?:fatal\s+)?(error):\s+.*$' && :)
+              then
+                exit 1
+              fi
             done
           }
           export -f run_shellcheck
