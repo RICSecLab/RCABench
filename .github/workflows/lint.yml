@@ -18,7 +18,7 @@ env:
 
 jobs:
   hadolint:
-    name: hadolint
+    name: 'hadolint (fail on error)'
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -36,7 +36,7 @@ jobs:
           verbose: true
           failure-threshold: error
   shellcheck:
-    name: 'ShellCheck (annotations only)'
+    name: 'ShellCheck (fail on error)'
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -48,7 +48,23 @@ jobs:
           action: add
           linters: gcc
       - name: Run shellcheck
-        run: for file in $(find . -name *.sh); do /usr/local/bin/shellcheck --format=gcc $file && :; done; true
+        run: |
+          run_shellcheck() {
+            args=("$0" "$@")
+            for arg in "${args[@]}"; do
+              SHELLCHECK_OUT=$(/usr/local/bin/shellcheck --format=gcc "$arg") && :;
+              if [ -n "$SHELLCHECK_OUT" ];then
+                echo "$SHELLCHECK_OUT"
+              fi
+              # fail on error
+              if (echo "$SHELLCHECK_OUT" | grep -q -E '^.*:[[:digit:]]:[[:digit:]]:\s+(?:fatal\s+)?(error):\s+.*$' && :)
+              then
+                exit 1
+              fi
+            done
+          }
+          export -f run_shellcheck
+          find . -name '*.sh' -exec bash -c 'set -e; run_shellcheck "$@"' {} +
       - uses: liskin/gh-problem-matcher-wrap@v2
         with:
           action: remove
