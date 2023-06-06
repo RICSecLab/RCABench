@@ -52,7 +52,9 @@ jobs:
           run_shellcheck() {
             for arg in "$@"; do
               SHELLCHECK_OUT=$(/usr/local/bin/shellcheck --format=gcc "$arg") && :;
-              echo -n "$SHELLCHECK_OUT"
+              if [ -n "$SHELLCHECK_OUT" ];then
+                echo "$SHELLCHECK_OUT"
+              fi
               # fail on error
               echo "$SHELLCHECK_OUT" | grep -q -v -E '^.*:[[:digit:]]:[[:digit:]]:\s+(?:fatal\s+)?(error):\s+.*$'
             done
