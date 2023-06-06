@@ -18,7 +18,7 @@ env:
 
 jobs:
   hadolint:
-    name: hadolint
+    name: 'hadolint (fail on error)'
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -52,7 +52,7 @@ jobs:
           run_shellcheck() {
             for arg in "$@"; do
               SHELLCHECK_OUT=$(/usr/local/bin/shellcheck --format=gcc "$arg") && :;
-              echo "$SHELLCHECK_OUT"
+              echo -n "$SHELLCHECK_OUT"
               # fail on error
               echo "$SHELLCHECK_OUT" | grep -q -v -E '^.*:[[:digit:]]:[[:digit:]]:\s+(?:fatal\s+)?(error):\s+.*$'
             done
