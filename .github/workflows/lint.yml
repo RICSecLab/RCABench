@@ -57,7 +57,7 @@ jobs:
                 echo "$SHELLCHECK_OUT"
               fi
               # fail on error
-              if (echo "$SHELLCHECK_OUT" | grep -q -E '^.*:[[:digit:]]:[[:digit:]]:\s+(?:fatal\s+)?(error):\s+.*$' && :)
+              if (echo "$SHELLCHECK_OUT" | grep -q -P '^(.*):(\d+):(\d+):\s+(?:fatal\s+)?(error):\s+(.*)$' && :)
               then
                 exit 1
               fi
