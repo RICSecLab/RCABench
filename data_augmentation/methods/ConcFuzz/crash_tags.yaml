@@ -3,6 +3,6 @@ lua_cve-2019-6706: asan;0;lapi.c:1294
 libjpeg_cve-2018-19664: asan;0;oracle_source/wrbmp.c:145
 libjpeg_cve-2017-15232: asan;0;oracle_source/jquant1.c:536
 libxml2_cve-2017-5969: asan;0;oracle_source/valid.c:1181
-nasm_cve-2018-16517: asan;2;oracle_source/asm/nasm.c:1484
+nasm_cve-2018-16517: asan;3;asm/nasm.c:1484
 readelf_cve-2019-9077: asan;0;binutils/readelf.c:16204
 mruby_hackerone-reports-185041: asan;4;error.c:290
