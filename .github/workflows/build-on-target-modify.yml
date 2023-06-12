@@ -14,6 +14,7 @@ jobs:
       # Note that the github.base_ref property is only available on pull_request or pull_request_target
       - name: Checkout on pull_request
         uses: actions/checkout@v3
+      - name: Fetch the branch of Pull Request to be merged
         run: git fetch origin ${{ github.base_ref }} --depth=1
       - name: Detect new targets
         run: |
