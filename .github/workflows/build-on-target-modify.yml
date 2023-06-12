@@ -1,25 +1,39 @@
-name: docker-build
+name: build-on-target-modify
 
 on:
   pull_request:
     branches:
       - '*'
     paths:
-      - '**Dockerfile'
-      - '**.sh'
+      - 'targets/**.sh'
   push:
     branches:
       - 'main'
     paths:
-      - '**Dockerfile'
-      - '**.sh'
+      - 'targets/**.sh'
 
 jobs:
+  detect_new_targets:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout on pull_request
+        if: ${{ github.base_ref }}
+        uses: actions/checkout@v3
+        run: git fetch origin ${{ github.base_ref }} --depth=1
+      - name: Detect new targets
+        if: ${{ github.base_ref }}
+        run: |
+        EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+        echo 'DETECTED_TARGETS<<$EOF' >> "$GITHUB_ENV"
+        git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '^targets' | sed 's/^targets\/\([^\/]\+\)\/.\+$/\1/' | sort -u >> "$GITHUB_ENV"
+        echo "$EOF" >> "$GITHUB_ENV"
+
   da_matrix:
     name: 'Test docker build for data augmentation'
     strategy:
       matrix:
         da_method: ['AFLcem', 'ConcFuzz']
+        build_target: ${{ env.DETECTED_TARGETS }}
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
@@ -40,7 +54,7 @@ jobs:
       - name: Docker build
         env:
           DA: ${{ matrix.da_method }}
-          TARGET_ID: 'libtiff_cve-2016-10094'
+          TARGET_ID: ${{ matrix.build_target }}
         run: |
           # Wrap `docker build` with `docker buildx build`
           docker() {
@@ -72,6 +86,7 @@ jobs:
     strategy:
       matrix:
         fe_method: ['AuroraFE', 'VulnLocFE']
+        build_target: ${{ env.DETECTED_TARGETS }}
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
@@ -92,7 +107,7 @@ jobs:
       - name: Docker build
         env:
           FE: ${{ matrix.fe_method }}
-          TARGET_ID: 'libtiff_cve-2016-10094'
+          TARGET_ID: ${{ matrix.build_target }}
         run: |
           # Wrap `docker build` with `docker buildx build`
           docker() {
