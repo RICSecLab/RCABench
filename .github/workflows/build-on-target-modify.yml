@@ -10,6 +10,8 @@ on:
 jobs:
   detect_new_targets:
     runs-on: ubuntu-20.04
+    outputs:
+      DETECTED_TARGETS: ${{ steps.detection_step.outputs.DETECTED_TARGETS }}
     steps:
       # Note that the github.base_ref property is only available on pull_request or pull_request_target
       - name: Checkout on pull_request
@@ -17,6 +19,7 @@ jobs:
       - name: Fetch the branch of Pull Request to be merged
         run: git fetch origin ${{ github.base_ref }} --depth=1
       - name: Detect new targets
+        id: detection_step
         run: |
           echo 'DETECTED_TARGETS<<EOF' >> "$GITHUB_OUTPUT"
           git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '^targets' | sed 's/^targets\/\([^\/]\+\)\/.\+$/\1/' | sort -u | jq -R -s -c 'split("\n")[:-1]' >> "$GITHUB_OUTPUT"
