@@ -5,8 +5,10 @@ on:
     branches:
       - '*'
     paths:
+      # If scripts under `targets` directory are modified, the `build-on-target-modify` workflow covers the tests
       - '**Dockerfile'
       - '**.sh'
+      - '!targets/**.sh'
   push:
     branches:
       - 'main'
