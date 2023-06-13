@@ -24,6 +24,7 @@ jobs:
           echo "$EOF" >> "$GITHUB_ENV"
 
   da_matrix:
+    needs: detect_new_targets
     name: 'Test docker build for data augmentation'
     strategy:
       matrix:
