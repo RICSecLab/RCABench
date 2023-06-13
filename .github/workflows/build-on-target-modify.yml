@@ -18,10 +18,9 @@ jobs:
         run: git fetch origin ${{ github.base_ref }} --depth=1
       - name: Detect new targets
         run: |
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo 'DETECTED_TARGETS<<$EOF' >> "$GITHUB_OUTPUT"
+          echo 'DETECTED_TARGETS<<EOF' >> "$GITHUB_OUTPUT"
           git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '^targets' | sed 's/^targets\/\([^\/]\+\)\/.\+$/\1/' | sort -u >> "$GITHUB_OUTPUT"
-          echo "$EOF" >> "$GITHUB_OUTPUT"
+          echo 'EOF' >> "$GITHUB_OUTPUT"
 
   da_matrix:
     needs: detect_new_targets
