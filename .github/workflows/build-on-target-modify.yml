@@ -19,9 +19,9 @@ jobs:
       - name: Detect new targets
         run: |
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo 'DETECTED_TARGETS<<$EOF' >> "$GITHUB_ENV"
-          git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '^targets' | sed 's/^targets\/\([^\/]\+\)\/.\+$/\1/' | sort -u >> "$GITHUB_ENV"
-          echo "$EOF" >> "$GITHUB_ENV"
+          echo 'DETECTED_TARGETS<<$EOF' >> "$GITHUB_OUTPUT"
+          git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '^targets' | sed 's/^targets\/\([^\/]\+\)\/.\+$/\1/' | sort -u >> "$GITHUB_OUTPUT"
+          echo "$EOF" >> "$GITHUB_OUTPUT"
 
   da_matrix:
     needs: detect_new_targets
@@ -29,7 +29,7 @@ jobs:
     strategy:
       matrix:
         da_method: ['AFLcem', 'ConcFuzz']
-        build_target: ${{ env.DETECTED_TARGETS }}
+        build_target: ${{ needs.detect_new_targets.DETECTED_TARGETS }}
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
@@ -78,11 +78,12 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   fe_matrix:
+    needs: detect_new_targets
     name: 'Test docker build for feature extraction'
     strategy:
       matrix:
         fe_method: ['AuroraFE', 'VulnLocFE']
-        build_target: ${{ env.DETECTED_TARGETS }}
+        build_target: ${{ needs.detect_new_targets.DETECTED_TARGETS }}
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
