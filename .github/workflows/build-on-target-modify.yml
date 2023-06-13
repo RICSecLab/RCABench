@@ -28,7 +28,7 @@ jobs:
     strategy:
       matrix:
         da_method: ['AFLcem', 'ConcFuzz']
-        build_target: ${{ fromJSON(needs.detect_new_targets.DETECTED_TARGETS) }}
+        build_target: ${{ fromJSON(needs.detect_new_targets.outputs.DETECTED_TARGETS) }}
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
@@ -82,7 +82,7 @@ jobs:
     strategy:
       matrix:
         fe_method: ['AuroraFE', 'VulnLocFE']
-        build_target: ${{ fromJSON(needs.detect_new_targets.DETECTED_TARGETS) }}
+        build_target: ${{ fromJSON(needs.detect_new_targets.outputs.DETECTED_TARGETS) }}
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
