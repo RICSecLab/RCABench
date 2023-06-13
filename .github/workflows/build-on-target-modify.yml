@@ -19,7 +19,7 @@ jobs:
       - name: Detect new targets
         run: |
           echo 'DETECTED_TARGETS<<EOF' >> "$GITHUB_OUTPUT"
-          git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '^targets' | sed 's/^targets\/\([^\/]\+\)\/.\+$/\1/' | sort -u >> "$GITHUB_OUTPUT"
+          git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '^targets' | sed 's/^targets\/\([^\/]\+\)\/.\+$/\1/' | sort -u | jq -R -s -c 'split("\n")[:-1]' >> "$GITHUB_OUTPUT"
           echo 'EOF' >> "$GITHUB_OUTPUT"
 
   da_matrix:
@@ -28,7 +28,7 @@ jobs:
     strategy:
       matrix:
         da_method: ['AFLcem', 'ConcFuzz']
-        build_target: ${{ needs.detect_new_targets.DETECTED_TARGETS }}
+        build_target: ${{ fromJSON(needs.detect_new_targets.DETECTED_TARGETS) }}
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
@@ -82,7 +82,7 @@ jobs:
     strategy:
       matrix:
         fe_method: ['AuroraFE', 'VulnLocFE']
-        build_target: ${{ needs.detect_new_targets.DETECTED_TARGETS }}
+        build_target: ${{ fromJSON(needs.detect_new_targets.DETECTED_TARGETS) }}
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
