@@ -1,24 +1,46 @@
-name: docker-build-manual
+name: build-on-target-modify
 
 on:
+  pull_request:
+    branches:
+      - '*'
+    paths:
+      - 'targets/**.sh'
   workflow_dispatch:
     inputs:
-      da:
-        required: true
-        type: string
-        default: 'AFLcem'
-      fe:
-        required: true
-        type: string
-        default: 'VulnLocFE'
       target_id:
         required: true
         type: string
         default: 'libtiff_cve-2016-10094'
 
 jobs:
-  da_build:
+  detect_new_targets:
+    runs-on: ubuntu-20.04
+    outputs:
+      DETECTED_TARGETS: ${{ inputs.target_id && format('["{0}"]', inputs.target_id) || steps.detection_step.outputs.DETECTED_TARGETS }}
+    steps:
+      # Note that the github.base_ref property is only available on pull_request or pull_request_target
+      - name: Checkout on pull_request
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v3
+      - name: Fetch the branch of Pull Request to be merged
+        if: ${{ github.event_name == 'pull_request' }}
+        run: git fetch origin ${{ github.base_ref }} --depth=1
+      - name: Detect new targets
+        if: ${{ github.event_name == 'pull_request' }}
+        id: detection_step
+        run: |
+          echo 'DETECTED_TARGETS<<EOF' >> "$GITHUB_OUTPUT"
+          git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '^targets' | sed 's/^targets\/\([^\/]\+\)\/.\+$/\1/' | sort -u | jq -R -s -c 'split("\n")[:-1]' >> "$GITHUB_OUTPUT"
+          echo 'EOF' >> "$GITHUB_OUTPUT"
+
+  da_matrix:
+    needs: detect_new_targets
     name: 'Test docker build for data augmentation'
+    strategy:
+      matrix:
+        da_method: ['AFLcem', 'ConcFuzz']
+        build_target: ${{ fromJSON(needs.detect_new_targets.outputs.DETECTED_TARGETS) }}
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
@@ -32,14 +54,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-da-${{ inputs.da }}-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-da-${{ matrix.da_method }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-da-${{ inputs.da }}
+            ${{ runner.os }}-buildx-da-${{ matrix.da_method }}
 
       - name: Docker build
         env:
-          DA: ${{ inputs.da }}
-          TARGET_ID: ${{ inputs.target_id }}
+          DA: ${{ matrix.da_method }}
+          TARGET_ID: ${{ matrix.build_target }}
         run: |
           # Wrap `docker build` with `docker buildx build`
           docker() {
@@ -66,8 +88,13 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-  fe_build:
+  fe_matrix:
+    needs: detect_new_targets
     name: 'Test docker build for feature extraction'
+    strategy:
+      matrix:
+        fe_method: ['AuroraFE', 'VulnLocFE']
+        build_target: ${{ fromJSON(needs.detect_new_targets.outputs.DETECTED_TARGETS) }}
     runs-on: ubuntu-20.04
     timeout-minutes: 60
     steps:
@@ -81,14 +108,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-fe-${{ inputs.fe }}-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-fe-${{ matrix.fe_method }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-fe-${{ inputs.fe }}
+            ${{ runner.os }}-buildx-fe-${{ matrix.fe_method }}
 
       - name: Docker build
         env:
-          FE: ${{ inputs.fe }}
-          TARGET_ID: ${{ inputs.target_id }}
+          FE: ${{ matrix.fe_method }}
+          TARGET_ID: ${{ matrix.build_target }}
         run: |
           # Wrap `docker build` with `docker buildx build`
           docker() {
