@@ -1,0 +1,73 @@
+diff --git a/src/afl-fuzz-bitmap.c b/src/afl-fuzz-bitmap.c
+index 556bb5d1..cbbec822 100644
+--- a/src/afl-fuzz-bitmap.c
++++ b/src/afl-fuzz-bitmap.c
+@@ -470,6 +470,9 @@ save_if_interesting(afl_state_t *afl, void *mem, u32 len, u8 fault) {
+   s32 fd;
+   u64 cksum = 0;
+ 
++  /* Crash exploration */
++  static u32 unique_non_crash_id = 0;
++
+   /* Update path frequency. */
+ 
+   /* Generating a hash on every input is super expensive. Bad idea and should
+@@ -831,6 +834,30 @@ save_if_interesting(afl_state_t *afl, void *mem, u32 len, u8 fault) {
+       FATAL("Unable to execute target application");
+ 
+     default:
++      /* Crash exploration */
++      if (!(new_bits = has_new_bits(afl, afl->virgin_bits))) { return keeping; }
++#ifndef SIMPLE_FILES
++
++      queue_fn = alloc_printf("%s/non_crashes/id:%06u,%s_%u",
++                              afl->out_dir,
++                              afl->queued_items,
++                              describe_op(afl, new_bits + is_timeout,
++                                          NAME_MAX - strlen("id:000000,")),
++                              unique_non_crash_id);
++
++#else
++
++      queue_fn = alloc_printf("%s/non_crashes/id_%06u_%u",
++                              afl->out_dir,
++                              afl->queued_items,
++                              unique_non_crash_id);
++
++#endif                                                    /* ^!SIMPLE_FILES */
++      fd = open(queue_fn, O_WRONLY | O_CREAT | O_EXCL, DEFAULT_PERMISSION);
++      if (unlikely(fd < 0)) { PFATAL("Unable to create '%s'", queue_fn); }
++      ck_write(fd, mem, len, queue_fn);
++      close(fd);
++      unique_non_crash_id++;
+       return keeping;
+ 
+   }
+diff --git a/src/afl-fuzz-init.c b/src/afl-fuzz-init.c
+index 13802f40..5b81ff44 100644
+--- a/src/afl-fuzz-init.c
++++ b/src/afl-fuzz-init.c
+@@ -1766,6 +1766,11 @@ static void handle_existing_out_dir(afl_state_t *afl) {
+   if (rmdir(fn) && errno != ENOENT) { goto dir_cleanup_failed; }
+   ck_free(fn);
+ 
++  /* Crash exploration */
++  fn = alloc_printf("%s/non_crashes", afl->out_dir);
++  if (delete_files(fn, CASE_PREFIX)) { goto dir_cleanup_failed; }
++  ck_free(fn);
++
+   fn = alloc_printf("%s/queue", afl->out_dir);
+   if (delete_files(fn, CASE_PREFIX)) { goto dir_cleanup_failed; }
+   ck_free(fn);
+@@ -2024,6 +2029,11 @@ void setup_dirs_fds(afl_state_t *afl) {
+   if (mkdir(tmp, 0700)) { PFATAL("Unable to create '%s'", tmp); }
+   ck_free(tmp);
+ 
++  /* Crash exploration */
++  tmp = alloc_printf("%s/non_crashes", afl->out_dir);
++  if (mkdir(tmp, 0700)) { PFATAL("Unable to create '%s'", tmp); }
++  ck_free(tmp);
++
+   /* Top-level directory for queue metadata used for session
+      resume and related tasks. */
+ 
