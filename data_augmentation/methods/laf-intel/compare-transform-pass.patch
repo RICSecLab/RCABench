@@ -1,0 +1,34 @@
+diff --git a/instrumentation/compare-transform-pass.so.cc b/instrumentation/compare-transform-pass.so.cc
+index 5dd705cf..6e20135e 100644
+--- a/instrumentation/compare-transform-pass.so.cc
++++ b/instrumentation/compare-transform-pass.so.cc
+@@ -226,10 +226,7 @@ bool CompareTransform::transformCmps(Module &M, const bool processStrcmp,
+           StringRef FuncName = Callee->getName();
+           isStrcmp &=
+               (!FuncName.compare("strcmp") || !FuncName.compare("xmlStrcmp") ||
+-               !FuncName.compare("xmlStrEqual") ||
+-               !FuncName.compare("g_strcmp0") ||
+-               !FuncName.compare("curl_strequal") ||
+-               !FuncName.compare("strcsequal"));
++               !FuncName.compare("g_strcmp0"));
+           isMemcmp &=
+               (!FuncName.compare("memcmp") || !FuncName.compare("bcmp") ||
+                !FuncName.compare("CRYPTO_memcmp") ||
+@@ -237,8 +234,7 @@ bool CompareTransform::transformCmps(Module &M, const bool processStrcmp,
+                !FuncName.compare("memcmp_const_time") ||
+                !FuncName.compare("memcmpct"));
+           isStrncmp &= (!FuncName.compare("strncmp") ||
+-                        !FuncName.compare("xmlStrncmp") ||
+-                        !FuncName.compare("curl_strnequal"));
++                        !FuncName.compare("xmlStrncmp"));
+           isStrcasecmp &= (!FuncName.compare("strcasecmp") ||
+                            !FuncName.compare("stricmp") ||
+                            !FuncName.compare("ap_cstr_casecmp") ||
+@@ -472,7 +468,6 @@ bool CompareTransform::transformCmps(Module &M, const bool processStrcmp,
+ 
+       if (isMemcmp || !Callee->getName().compare("strncmp") ||
+           !Callee->getName().compare("xmlStrncmp") ||
+-          !Callee->getName().compare("curl_strnequal") ||
+           !Callee->getName().compare("strncasecmp") ||
+           !Callee->getName().compare("strnicmp") ||
+           !Callee->getName().compare("ap_cstr_casecmpn") ||

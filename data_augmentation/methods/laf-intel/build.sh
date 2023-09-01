@@ -13,6 +13,7 @@ git checkout 4.07c
 # apply the Aurora patch (TODO)
 #
 patch -p1 < "${DA_ROOT}/aflppcem.patch"
+patch -p1 < "${DA_ROOT}/compare-transform-pass.patch"
 
 #
 # build AFL++
