@@ -5,3 +5,4 @@ libjpeg_cve-2017-15232: asan;0;oracle_source/jquant1.c:536
 libxml2_cve-2017-5969: asan;0;oracle_source/valid.c:1181
 readelf_cve-2019-9077: asan;0;binutils/readelf.c:16204
 mruby_hackerone-reports-185041: asan;4;error.c:290
+php_cve-2019-11038: asan;2;gd.c:2463
