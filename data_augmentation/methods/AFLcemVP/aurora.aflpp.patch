@@ -1,0 +1,323 @@
+diff --git a/src/afl-fuzz-bitmap.c b/src/afl-fuzz-bitmap.c
+index 556bb5d1..99c37a4d 100644
+--- a/src/afl-fuzz-bitmap.c
++++ b/src/afl-fuzz-bitmap.c
+@@ -470,6 +470,9 @@ save_if_interesting(afl_state_t *afl, void *mem, u32 len, u8 fault) {
+   s32 fd;
+   u64 cksum = 0;
+ 
++  /* Crash exploration */
++  static u32 unique_non_crash_id = 0;
++
+   /* Update path frequency. */
+ 
+   /* Generating a hash on every input is super expensive. Bad idea and should
+@@ -495,11 +498,27 @@ save_if_interesting(afl_state_t *afl, void *mem, u32 len, u8 fault) {
+ 
+     if (likely(classified)) {
+ 
+-      new_bits = has_new_bits(afl, afl->virgin_bits);
++      if (afl->crash_mode) {
++
++        new_bits = has_new_bits(afl, afl->virgin_crash);
++
++      } else {
++
++        new_bits = has_new_bits(afl, afl->virgin_bits);
++
++      }
+ 
+     } else {
+ 
+-      new_bits = has_new_bits_unclassified(afl, afl->virgin_bits);
++      if (afl->crash_mode) {
++
++        new_bits = has_new_bits_unclassified(afl, afl->virgin_crash);
++
++      } else {
++
++        new_bits = has_new_bits_unclassified(afl, afl->virgin_bits);
++
++      }
+ 
+       if (unlikely(new_bits)) { classified = 1; }
+ 
+@@ -744,40 +763,43 @@ save_if_interesting(afl_state_t *afl, void *mem, u32 len, u8 fault) {
+ 
+       if (afl->saved_crashes >= KEEP_UNIQUE_CRASH) { return keeping; }
+ 
+-      if (likely(!afl->non_instrumented_mode)) {
++      if (!afl->crash_mode) {
+ 
+-        if (unlikely(!classified)) {
++        if (likely(!afl->non_instrumented_mode)) {
+ 
+-          classify_counts(&afl->fsrv);
+-          classified = 1;
++          if (unlikely(!classified)) {
+ 
+-        }
++            classify_counts(&afl->fsrv);
++            classified = 1;
+ 
+-        simplify_trace(afl, afl->fsrv.trace_bits);
++          }
+ 
+-        if (!has_new_bits(afl, afl->virgin_crash)) { return keeping; }
++          simplify_trace(afl, afl->fsrv.trace_bits);
+ 
+-      }
++          if (!has_new_bits(afl, afl->virgin_crash)) { return keeping; }
+ 
+-      if (unlikely(!afl->saved_crashes) &&
+-          (afl->afl_env.afl_no_crash_readme != 1)) {
++        }
+ 
+-        write_crash_readme(afl);
++        if (unlikely(!afl->saved_crashes) &&
++            (afl->afl_env.afl_no_crash_readme != 1)) {
+ 
+-      }
++          write_crash_readme(afl);
++
++        }
+ 
+ #ifndef SIMPLE_FILES
+ 
+-      snprintf(fn, PATH_MAX, "%s/crashes/id:%06llu,sig:%02u,%s", afl->out_dir,
+-               afl->saved_crashes, afl->fsrv.last_kill_signal,
+-               describe_op(afl, 0, NAME_MAX - strlen("id:000000,sig:00,")));
++        snprintf(fn, PATH_MAX, "%s/crashes/id:%06llu,sig:%02u,%s", afl->out_dir,
++                 afl->saved_crashes, afl->fsrv.last_kill_signal,
++                 describe_op(afl, 0, NAME_MAX - strlen("id:000000,sig:00,")));
+ 
+ #else
+ 
+-      snprintf(fn, PATH_MAX, "%s/crashes/id_%06llu_%02u", afl->out_dir,
+-               afl->saved_crashes, afl->fsrv.last_kill_signal);
++        snprintf(fn, PATH_MAX, "%s/crashes/id_%06llu_%02u", afl->out_dir,
++                 afl->saved_crashes, afl->fsrv.last_kill_signal);
+ 
+ #endif                                                    /* ^!SIMPLE_FILES */
++      }
+ 
+       ++afl->saved_crashes;
+ #ifdef INTROSPECTION
+@@ -825,12 +847,59 @@ save_if_interesting(afl_state_t *afl, void *mem, u32 len, u8 fault) {
+       afl->last_crash_time = get_cur_time();
+       afl->last_crash_execs = afl->fsrv.total_execs;
+ 
++      if (afl->crash_mode) {
++
++#ifdef __linux__
++        if (afl->fsrv.nyx_mode && fault == FSRV_RUN_CRASH) {
++
++          u8 fn_log[PATH_MAX];
++
++          (void)(snprintf(fn_log, PATH_MAX, "%s.log", fn) + 1);
++          fd = open(fn_log, O_WRONLY | O_CREAT | O_EXCL, DEFAULT_PERMISSION);
++          if (unlikely(fd < 0)) { PFATAL("Unable to create '%s'", fn_log); }
++
++          u32 nyx_aux_string_len = afl->fsrv.nyx_handlers->nyx_get_aux_string(
++              afl->fsrv.nyx_runner, afl->fsrv.nyx_aux_string, 0x1000);
++
++          ck_write(fd, afl->fsrv.nyx_aux_string, nyx_aux_string_len, fn_log);
++          close(fd);
++
++        }
++
++#endif
++        return keeping;
++      }
++
+       break;
+ 
+     case FSRV_RUN_ERROR:
+       FATAL("Unable to execute target application");
+ 
+     default:
++      /* Crash exploration */
++      if (!(new_bits = has_new_bits(afl, afl->virgin_bits))) { return keeping; }
++#ifndef SIMPLE_FILES
++
++      queue_fn = alloc_printf("%s/non_crashes/id:%06u,%s_%u",
++                              afl->out_dir,
++                              afl->queued_items,
++                              describe_op(afl, new_bits + is_timeout,
++                                          NAME_MAX - strlen("id:000000,")),
++                              unique_non_crash_id);
++
++#else
++
++      queue_fn = alloc_printf("%s/non_crashes/id_%06u_%u",
++                              afl->out_dir,
++                              afl->queued_items,
++                              unique_non_crash_id);
++
++#endif                                                    /* ^!SIMPLE_FILES */
++      fd = open(queue_fn, O_WRONLY | O_CREAT | O_EXCL, DEFAULT_PERMISSION);
++      if (unlikely(fd < 0)) { PFATAL("Unable to create '%s'", queue_fn); }
++      ck_write(fd, mem, len, queue_fn);
++      close(fd);
++      unique_non_crash_id++;
+       return keeping;
+ 
+   }
+diff --git a/src/afl-fuzz-init.c b/src/afl-fuzz-init.c
+index 13802f40..5b81ff44 100644
+--- a/src/afl-fuzz-init.c
++++ b/src/afl-fuzz-init.c
+@@ -1766,6 +1766,11 @@ static void handle_existing_out_dir(afl_state_t *afl) {
+   if (rmdir(fn) && errno != ENOENT) { goto dir_cleanup_failed; }
+   ck_free(fn);
+ 
++  /* Crash exploration */
++  fn = alloc_printf("%s/non_crashes", afl->out_dir);
++  if (delete_files(fn, CASE_PREFIX)) { goto dir_cleanup_failed; }
++  ck_free(fn);
++
+   fn = alloc_printf("%s/queue", afl->out_dir);
+   if (delete_files(fn, CASE_PREFIX)) { goto dir_cleanup_failed; }
+   ck_free(fn);
+@@ -2024,6 +2029,11 @@ void setup_dirs_fds(afl_state_t *afl) {
+   if (mkdir(tmp, 0700)) { PFATAL("Unable to create '%s'", tmp); }
+   ck_free(tmp);
+ 
++  /* Crash exploration */
++  tmp = alloc_printf("%s/non_crashes", afl->out_dir);
++  if (mkdir(tmp, 0700)) { PFATAL("Unable to create '%s'", tmp); }
++  ck_free(tmp);
++
+   /* Top-level directory for queue metadata used for session
+      resume and related tasks. */
+ 
+diff --git a/src/afl-fuzz-run.c b/src/afl-fuzz-run.c
+index ac4fb4a9..a6ea73b2 100644
+--- a/src/afl-fuzz-run.c
++++ b/src/afl-fuzz-run.c
+@@ -489,7 +489,17 @@ u8 calibrate_case(afl_state_t *afl, struct queue_entry *q, u8 *use_mem,
+   if (q->exec_cksum) {
+ 
+     memcpy(afl->first_trace, afl->fsrv.trace_bits, afl->fsrv.map_size);
+-    hnb = has_new_bits(afl, afl->virgin_bits);
++
++    if (afl->crash_mode) {
++
++      hnb = has_new_bits(afl, afl->virgin_crash);
++
++    } else {
++
++      hnb = has_new_bits(afl, afl->virgin_bits);
++
++    }
++
+     if (hnb > new_bits) { new_bits = hnb; }
+ 
+   }
+@@ -531,7 +541,16 @@ u8 calibrate_case(afl_state_t *afl, struct queue_entry *q, u8 *use_mem,
+     cksum = hash64(afl->fsrv.trace_bits, afl->fsrv.map_size, HASH_CONST);
+     if (q->exec_cksum != cksum) {
+ 
+-      hnb = has_new_bits(afl, afl->virgin_bits);
++      if (afl->crash_mode) {
++
++        hnb = has_new_bits(afl, afl->virgin_crash);
++
++      } else {
++
++        hnb = has_new_bits(afl, afl->virgin_bits);
++
++      }
++
+       if (hnb > new_bits) { new_bits = hnb; }
+ 
+       if (q->exec_cksum) {
+@@ -545,7 +564,15 @@ u8 calibrate_case(afl_state_t *afl, struct queue_entry *q, u8 *use_mem,
+ 
+             afl->var_bytes[i] = 1;
+             // ignore the variable edge by setting it to fully discovered
+-            afl->virgin_bits[i] = 0;
++            if (afl->crash_mode) {
++
++              afl->virgin_crash[i] = 0;
++
++            } else {
++
++              afl->virgin_bits[i] = 0;
++
++            }
+ 
+           }
+ 
+diff --git a/src/afl-fuzz-stats.c b/src/afl-fuzz-stats.c
+index 07157bf7..8e91dd2b 100644
+--- a/src/afl-fuzz-stats.c
++++ b/src/afl-fuzz-stats.c
+@@ -586,7 +586,15 @@ void show_stats_normal(afl_state_t *afl) {
+ 
+   /* Do some bitmap stats. */
+ 
+-  t_bytes = count_non_255_bytes(afl, afl->virgin_bits);
++  if (afl->crash_mode){
++
++    t_bytes = count_non_255_bytes(afl, afl->virgin_crash);
++
++  } else{
++
++    t_bytes = count_non_255_bytes(afl, afl->virgin_bits);
++
++  }
+   t_byte_ratio = ((double)t_bytes * 100) / afl->fsrv.real_map_size;
+ 
+   if (unlikely(t_bytes > afl->fsrv.real_map_size)) {
+@@ -705,7 +713,15 @@ void show_stats_normal(afl_state_t *afl) {
+ 
+   /* Compute some mildly useful bitmap stats. */
+ 
+-  t_bits = (afl->fsrv.map_size << 3) - count_bits(afl, afl->virgin_bits);
++  if (afl->crash_mode) {
++
++    t_bits = (afl->fsrv.map_size << 3) - count_bits(afl, afl->virgin_crash);
++
++  } else {
++
++    t_bits = (afl->fsrv.map_size << 3) - count_bits(afl, afl->virgin_bits);
++
++  }
+ 
+   /* Now, for the visuals... */
+ 
+@@ -1390,7 +1406,15 @@ void show_stats_pizza(afl_state_t *afl) {
+ 
+   /* Do some bitmap stats. */
+ 
+-  t_bytes = count_non_255_bytes(afl, afl->virgin_bits);
++  if (afl->crash_mode) {
++
++    t_bytes = count_non_255_bytes(afl, afl->virgin_crash);
++
++  } else {
++
++    t_bytes = count_non_255_bytes(afl, afl->virgin_bits);
++
++  }
+   t_byte_ratio = ((double)t_bytes * 100) / afl->fsrv.real_map_size;
+ 
+   if (unlikely(t_bytes > afl->fsrv.real_map_size)) {
+@@ -1507,9 +1531,15 @@ void show_stats_pizza(afl_state_t *afl) {
+   if (unlikely(!afl->queue_cur)) { return; }
+ 
+   /* Compute some mildly useful bitmap stats. */
++  if (afl->crash_mode) {
++
++    t_bits = (afl->fsrv.map_size << 3) - count_bits(afl, afl->virgin_crash);
+ 
+-  t_bits = (afl->fsrv.map_size << 3) - count_bits(afl, afl->virgin_bits);
++  } else {
++
++    t_bits = (afl->fsrv.map_size << 3) - count_bits(afl, afl->virgin_bits);
+ 
++  }
+   /* Now, for the visuals... */
+ 
+   if (afl->clear_screen) {

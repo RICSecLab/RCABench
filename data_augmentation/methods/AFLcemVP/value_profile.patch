@@ -1,0 +1,151 @@
+diff --git a/instrumentation/afl-compiler-rt.o.c b/instrumentation/afl-compiler-rt.o.c
+index 3f8b519b..a9c10168 100644
+--- a/instrumentation/afl-compiler-rt.o.c
++++ b/instrumentation/afl-compiler-rt.o.c
+@@ -1896,9 +1896,10 @@ void __sanitizer_cov_trace_pc_guard_init(uint32_t *start, uint32_t *stop) {
+       __afl_unmap_shm();
+       __afl_map_shm();
+ 
++      __afl_map_size = __afl_final_loc + 1;
++
+     }
+ 
+-    __afl_map_size = __afl_final_loc + 1;
+ 
+   }
+ 
+@@ -2141,51 +2142,108 @@ void __cmplog_ins_hook16(uint128_t arg1, uint128_t arg2, uint8_t attr) {
+ 
+ #endif
+ 
++void add_value(const uintptr_t value) {
++
++  if (__afl_debug) fprintf(stderr, "value: 0x%016lx\n", value);
++
++  const uintptr_t bits_per_byte = CHAR_BIT;
++  const uintptr_t idx           = value % (__afl_map_size * bits_per_byte);
++  const uintptr_t byte_idx      = idx / bits_per_byte;
++  const uintptr_t bit_idx       = idx % bits_per_byte;
++
++  if (__afl_debug) {
++
++    fprintf(stderr,
++      "idx: 0x%016lx, byte_idx: 0x%016lx, bit_idx: 0x%016lx\n",
++      idx, byte_idx, bit_idx
++    );
++
++  }
++
++
++  __afl_area_ptr[byte_idx] |= (1ULL << bit_idx);
++
++}
++
++void handle_cmp(uintptr_t pc, uint64_t arg1, uint64_t arg2) {
++
++  if (__afl_debug) {
++
++    fprintf(stderr, "arg1: 0x%016lx, arg2: 0x%016lx, PC: 0x%016lx\n", arg1, arg2, pc);
++
++  }
++
++  uint64_t arg_xor = arg1 ^ arg2;
++  uint64_t hamming_distance = __builtin_popcountll(arg_xor);
++  uint64_t absolute_distance = (arg1 == arg2 ? 0 : __builtin_clzll(arg1 - arg2) + 1);
++
++  if (__afl_debug) {
++
++    fprintf(stderr,
++      "arg1 ^ arg2: 0x%016lx, hamming distance: 0x%016lx, absolute distance: 0x%016lx\n",
++      arg_xor, hamming_distance, absolute_distance
++    );
++
++  }
++
++  add_value(pc * 128 + hamming_distance);
++  add_value(pc * 128 + 64 + absolute_distance);
++
++}
++
+ void __sanitizer_cov_trace_cmp1(uint8_t arg1, uint8_t arg2) {
+ 
+-  __cmplog_ins_hook1(arg1, arg2, 0);
++  uintptr_t pc = (uintptr_t)__builtin_return_address(0);
++  handle_cmp(pc, (uint64_t)arg1, (uint64_t)arg2);
+ 
+ }
+ 
+ void __sanitizer_cov_trace_const_cmp1(uint8_t arg1, uint8_t arg2) {
+ 
+-  __cmplog_ins_hook1(arg1, arg2, 0);
++  uintptr_t pc = (uintptr_t)__builtin_return_address(0);
++  handle_cmp(pc, (uint64_t)arg1, (uint64_t)arg2);
+ 
+ }
+ 
+ void __sanitizer_cov_trace_cmp2(uint16_t arg1, uint16_t arg2) {
+ 
+-  __cmplog_ins_hook2(arg1, arg2, 0);
++  uintptr_t pc = (uintptr_t)__builtin_return_address(0);
++  handle_cmp(pc, (uint64_t)arg1, (uint64_t)arg2);
+ 
+ }
+ 
+ void __sanitizer_cov_trace_const_cmp2(uint16_t arg1, uint16_t arg2) {
+ 
+-  __cmplog_ins_hook2(arg1, arg2, 0);
++  uintptr_t pc = (uintptr_t)__builtin_return_address(0);
++  handle_cmp(pc, (uint64_t)arg1, (uint64_t)arg2);
+ 
+ }
+ 
+ void __sanitizer_cov_trace_cmp4(uint32_t arg1, uint32_t arg2) {
+ 
+-  __cmplog_ins_hook4(arg1, arg2, 0);
++  uintptr_t pc = (uintptr_t)__builtin_return_address(0);
++  handle_cmp(pc, (uint64_t)arg1, (uint64_t)arg2);
+ 
+ }
+ 
+ void __sanitizer_cov_trace_const_cmp4(uint32_t arg1, uint32_t arg2) {
+ 
+-  __cmplog_ins_hook4(arg1, arg2, 0);
++  uintptr_t pc = (uintptr_t)__builtin_return_address(0);
++  handle_cmp(pc, (uint64_t)arg1, (uint64_t)arg2);
+ 
+ }
+ 
+ void __sanitizer_cov_trace_cmp8(uint64_t arg1, uint64_t arg2) {
+ 
+-  __cmplog_ins_hook8(arg1, arg2, 0);
++  uintptr_t pc = (uintptr_t)__builtin_return_address(0);
++  handle_cmp(pc, (uint64_t)arg1, (uint64_t)arg2);
+ 
+ }
+ 
+ void __sanitizer_cov_trace_const_cmp8(uint64_t arg1, uint64_t arg2) {
+ 
+-  __cmplog_ins_hook8(arg1, arg2, 0);
++  uintptr_t pc = (uintptr_t)__builtin_return_address(0);
++  handle_cmp(pc, (uint64_t)arg1, (uint64_t)arg2);
+ 
+ }
+ 
+@@ -2664,4 +2722,3 @@ void __afl_set_persistent_mode(u8 mode) {
+ }
+ 
+ #undef write_error
+-
+diff --git a/src/afl-cc.c b/src/afl-cc.c
+index 9e56828c..9f63cf8f 100644
+--- a/src/afl-cc.c
++++ b/src/afl-cc.c
+@@ -1058,7 +1058,7 @@ static void edit_params(u32 argc, char **argv, char **envp) {
+ 
+         } else {
+ 
+-          cc_params[cc_par_cnt++] = "-fsanitize-coverage=trace-pc-guard";
++          cc_params[cc_par_cnt++] = "-fsanitize-coverage=trace-pc-guard,trace-cmp";
+ 
+         }
+ 
