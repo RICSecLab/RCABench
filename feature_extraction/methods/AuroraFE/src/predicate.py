@@ -49,9 +49,9 @@ class EdgePredicate(Predicate):
         if not isinstance(other, EdgePredicate):
             return -1
 
-        if self.location == other.location and
-           self.source == other.source and
-           self.transition == other.transition and
+        if self.location == other.location and \
+           self.source == other.source and \
+           self.transition == other.transition and \
            self.destination == other.destination:
             return 0
         else:
