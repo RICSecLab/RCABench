@@ -49,10 +49,13 @@ class EdgePredicate(Predicate):
         if not isinstance(other, EdgePredicate):
             return -1
 
-        return int(self.location == other.location and
-                   self.source == other.source and
-                   self.transition == other.transition and
-                   self.destination == other.destination)
+        if self.location == other.location and
+           self.source == other.source and
+           self.transition == other.transition and
+           self.destination == other.destination:
+            return 0
+        else:
+            return -1
 
     def __str__(self):
         return f"EdgePredicate(source={self.source}, "\
@@ -68,7 +71,10 @@ class FlagSet(Predicate):
         if not isinstance(other, FlagSet):
             return -1
 
-        return int(self.location == other.location and self.flag == other.flag)
+        if self.location == other.location and self.flag == other.flag:
+            return 0
+        else:
+            return -1
 
     def __str__(self):
         return f"FlagSet(flag={self.flag})"
@@ -82,7 +88,10 @@ class Visited(Predicate):
         if not isinstance(other, Visited):
             return -1
 
-        return int(self.location == other.location)
+        if self.location == other.location:
+            return 0
+        else:
+            return -1
 
     def __str__(self):
         return "Visited"
