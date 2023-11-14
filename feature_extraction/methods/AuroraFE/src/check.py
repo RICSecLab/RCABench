@@ -55,6 +55,7 @@ def check_predicates(ranking, oracle_preds_str):
 
     res = []
     for oracle_pred in oracle_preds:
+        found = False
         for rank, ranking_pred in enumerate(ranking_preds):
             # print(oracle_pred, ranking_pred)
             cmp = oracle_pred.compare_to(ranking_pred)
@@ -63,11 +64,14 @@ def check_predicates(ranking, oracle_preds_str):
                 continue
 
             # Found a exact or partial match predicate
+            found = True
             if cmp == 0:
                 res.append(f"{oracle_pred}: Exact match at rank {rank}")
             else:
                 res.append(f"{oracle_pred}: Partial match with rank {rank} and difference {cmp}")
             break
+        if not found:
+            res.append(f"{oracle_pred}: Not found")
     assert(len(res) == len(oracle_preds))
 
     return res
