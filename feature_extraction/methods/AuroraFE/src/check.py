@@ -44,6 +44,39 @@ def check_locations(ranking, locs):
     return (r+1, ru+1)
 
 
+def check_predicates(ranking, oracle_preds_str):
+    from predicate import decode_predicate
+    ranking_preds = [
+        decode_predicate(r.split("--")[1].strip(), r.split("//")[-1].split()[2])
+        for r in ranking if (not "inlined by" in r) and ("at" in r.split("//")[-1])]
+
+    oracle_preds = [decode_predicate(r.split("//")[0].strip(), r.split("//")[1].strip()) 
+                    for r in oracle_preds_str]
+
+    res = []
+    for oracle_pred in oracle_preds:
+        found = False
+        for rank, ranking_pred in enumerate(ranking_preds):
+            # print(oracle_pred, ranking_pred)
+            cmp = oracle_pred.compare_to(ranking_pred)
+            # Not match at all
+            if cmp == -1:
+                continue
+
+            # Found a exact or partial match predicate
+            found = True
+            if cmp == 0:
+                res.append(f"{oracle_pred}: Exact match at rank {rank}")
+            else:
+                res.append(f"{oracle_pred}: Partial match with rank {rank} and difference {cmp}")
+            break
+        if not found:
+            res.append(f"{oracle_pred}: Not found")
+    assert(len(res) == len(oracle_preds))
+
+    return res
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('results')
@@ -62,3 +95,12 @@ if __name__ == "__main__":
 
         print("loc_uniq:{}".format(loc_uniq))
         print("loc_dup:{}".format(loc_dup))
+
+    with open(args.results) as fres,\
+         open(args.rc_dir + "/predicates") as fpredef:
+
+        ranking = [l for l in fres.readlines() if " -- " in l]
+
+        res = check_predicates(ranking, fpredef.readlines())
+        for r in res:
+            print(r)
