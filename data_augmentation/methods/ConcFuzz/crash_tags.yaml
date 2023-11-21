@@ -1,3 +1,4 @@
+bash-2018-07-msg00042: asan;1;braces.c:596
 libtiff_cve-2016-10094: asan;2;tools/tiff2pdf.c:2901
 lua_cve-2019-6706: asan;0;lapi.c:1294
 libjpeg_cve-2018-19664: asan;0;oracle_source/wrbmp.c:145
